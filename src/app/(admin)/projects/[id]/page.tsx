@@ -107,7 +107,7 @@ export default async function ProjectDetail({ params }: Params) {
                 Edit
               </Button>
             </Link>
-            <Link href={`/projects/${id}/tasks/new`}>
+            <Link href={`/tasks/new?projectId=${id}`}>
               <Button leftIcon={<Plus className="w-4 h-4" />}>
                 Add Task
               </Button>
@@ -202,7 +202,7 @@ export default async function ProjectDetail({ params }: Params) {
           </div>
 
           {/* Activity Logs */}
-          <div className="space-y-4">
+          <div className="space-y-4 mt-10">
             <h3 className="text-lg font-medium flex items-center gap-2">
                 <Activity className="w-5 h-5 text-gray-500" /> Recent Activity
             </h3>
