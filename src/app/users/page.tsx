@@ -2,8 +2,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 
 export default async function UsersPage() {
-  // @ts-expect-error after generate
-  const users = await prisma.users.findMany({ orderBy: { created_at: 'desc' } })
+  const users = await prisma.users.findMany({ orderBy: { created_at: 'desc' } }) as any
   return (
     <main style={{ padding: 24 }}>
       <h1>Users</h1>
