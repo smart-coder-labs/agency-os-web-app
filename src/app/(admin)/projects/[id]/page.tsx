@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/Badge'
 import { TasksTable } from '@/components/tasks/TasksTable'
 import { StoriesTable } from '@/components/stories/StoriesTable'
-import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch } from 'lucide-react'
+import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
+import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity } from 'lucide-react'
 
-interface Params { params: { id: string } }
+interface Params { params: Promise<{ id: string }> }
 
 function mapPriority(p: number): string {
   if (p >= 4) return 'URGENT'
@@ -18,10 +19,31 @@ function mapPriority(p: number): string {
   return 'LOW'
 }
 
-export default async function ProjectDetail({ params }: Params) {
-  const id = params.id
+function mapLogToActivity(log: any): ActivityItemProps {
+  const actorName = log.agents ? log.agents.name : (log.tools ? `Tool: ${log.tools.name}` : 'System')
+  const actorInitials = actorName.slice(0, 2).toUpperCase()
   
-  const [project, tasks, stories] = await Promise.all([
+  let type: ActivityType = 'default'
+  if (log.log_type === 'ERROR') type = 'alert'
+  if (log.log_type === 'SUCCESS') type = 'success'
+  if (log.tools) type = 'commit' // treating tool execution as 'commit' style for now or generic
+
+  return {
+    actor: {
+      name: actorName,
+      initials: actorInitials
+    },
+    action: <span>{log.title || 'performed an action'}</span>,
+    date: new Date(log.created_at).toLocaleString(),
+    type: type,
+    children: <p>{log.detail}</p>
+  }
+}
+
+export default async function ProjectDetail({ params }: Params) {
+  const { id } = await params
+  
+  const [project, tasks, stories, logs] = await Promise.all([
     prisma.projects.findUnique({ 
       where: { id },
       include: {
@@ -37,6 +59,15 @@ export default async function ProjectDetail({ params }: Params) {
     prisma.user_stories.findMany({ 
       where: { project_id: id }, 
       orderBy: { created_at: 'desc' } 
+    }),
+    prisma.execution_logs.findMany({
+      where: { project_id: id },
+      orderBy: { created_at: 'desc' },
+      take: 20,
+      include: {
+        agents: true,
+        tools: true
+      }
     })
   ]) as any[]
 
@@ -53,6 +84,8 @@ export default async function ProjectDetail({ params }: Params) {
     ...s,
     project: { id: project.id, name: project.name }
   }))
+
+  const activityItems = logs.map(mapLogToActivity)
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -108,13 +141,27 @@ export default async function ProjectDetail({ params }: Params) {
                     Repository
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-3">
                   {project.repo_path ? (
-                    <div className="text-sm font-mono bg-gray-50 p-2 rounded border border-gray-100 break-all">
-                      {project.repo_path}
+                    <div>
+                        <span className="text-xs text-gray-500 uppercase font-semibold">Local Path</span>
+                        <div className="text-sm font-mono bg-gray-50 p-2 rounded border border-gray-100 break-all mt-1">
+                        {project.repo_path}
+                        </div>
+                    </div>
+                  ) : null}
+                  
+                  {project.github_path ? (
+                    <div>
+                        <span className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-1">
+                             <Github className="w-3 h-3" /> GitHub
+                        </span>
+                        <a href={project.github_path} target="_blank" rel="noopener noreferrer" className="text-sm font-mono text-blue-600 hover:underline block mt-1 truncate">
+                            {project.github_path}
+                        </a>
                     </div>
                   ) : (
-                    <span className="text-sm text-gray-400">No repository linked</span>
+                    !project.repo_path && <span className="text-sm text-gray-400">No repository linked</span>
                   )}
                 </CardContent>
              </Card>
@@ -152,6 +199,20 @@ export default async function ProjectDetail({ params }: Params) {
                   </CardContent>
                 </Link>
              </Card>
+          </div>
+
+          {/* Activity Logs */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+                <Activity className="w-5 h-5 text-gray-500" /> Recent Activity
+            </h3>
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+                {activityItems.length > 0 ? (
+                    <ActivityFeed items={activityItems} />
+                ) : (
+                    <div className="text-center py-8 text-gray-400">No recent activity</div>
+                )}
+            </div>
           </div>
         </TabsContent>
 

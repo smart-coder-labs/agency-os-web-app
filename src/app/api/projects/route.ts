@@ -9,9 +9,20 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const p = await prisma.projects.create({ data: body })
+    const { name, description, status, repo_path, github_path } = body
+    
+    const p = await prisma.projects.create({ 
+      data: {
+        name,
+        description,
+        status: status || 'DISCOVERY',
+        repo_path,
+        github_path
+      } 
+    })
     return NextResponse.json(p)
   } catch (e: any) {
+    console.error('Error creating project:', e)
     return NextResponse.json({ error: e.message || 'Failed' }, { status: 400 })
   }
 }

@@ -5,13 +5,25 @@ const PROTECTED = [/^\/dashboard/, /^\/projects/, /^\/tasks/, /^\/users/]
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const needsAuth = PROTECTED.some((re) => re.test(pathname))
-  if (!needsAuth) return NextResponse.next()
-  const session = req.cookies.get('session')?.value
-  if (!session) {
-    const url = new URL('/auth/signin', req.url)
-    return NextResponse.redirect(url)
+
+  // Handle root path
+  if (pathname === '/') {
+    const session = req.cookies.get('session')?.value
+    if (session) {
+       return NextResponse.redirect(new URL('/projects', req.url))
+    }
+    return NextResponse.redirect(new URL('/auth/signin', req.url))
   }
+
+  // Handle protected routes
+  const needsAuth = PROTECTED.some((re) => re.test(pathname))
+  if (needsAuth) {
+    const session = req.cookies.get('session')?.value
+    if (!session) {
+        return NextResponse.redirect(new URL('/auth/signin', req.url))
+    }
+  }
+  
   return NextResponse.next()
 }
 

@@ -8,7 +8,7 @@ datasource db {
 }
 
 model users {
-  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique @db.VarChar(255)
   password_hash String    @db.VarChar(255)
   full_name     String?   @db.VarChar(255)
@@ -25,14 +25,25 @@ model agent_skills {
   @@id([agent_id, skill_id])
 }
 
+model agent_tools {
+  agent_id String @db.Uuid
+  tool_id  String @db.Uuid
+  agents   agents @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tools    tools  @relation(fields: [tool_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([agent_id, tool_id])
+}
+
 model agents {
-  id            String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name          String         @unique @db.VarChar(100)
-  role          String         @db.VarChar(50)
-  model         String         @db.VarChar(100)
-  system_prompt String
-  is_active     Boolean?       @default(true)
-  agent_skills  agent_skills[]
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String           @unique @db.VarChar(100)
+  role           String           @db.VarChar(50)
+  model          String           @db.VarChar(100)
+  system_prompt  String
+  is_active      Boolean?         @default(true)
+  agent_skills   agent_skills[]
+  agent_tools    agent_tools[]
+  execution_logs execution_logs[]
 }
 
 model architecture_specs {
@@ -42,6 +53,23 @@ model architecture_specs {
   stack_decisions Json?     @default("{}")
   created_at      DateTime? @default(now()) @db.Timestamptz(6)
   projects        projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model execution_logs {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id String    @db.Uuid
+  task_id    String?   @db.Uuid
+  agent_id   String?   @db.Uuid
+  tool_id    String?   @db.Uuid
+  log_type   String?   @default("INFO") @db.VarChar(50)
+  title      String?   @db.VarChar(255)
+  detail     String?
+  metadata   Json?     @default("{}")
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  projects   projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  tasks      tasks?    @relation(fields: [task_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  agents     agents?   @relation(fields: [agent_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  tools      tools?    @relation(fields: [tool_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 }
 
 model project_briefs {
@@ -55,11 +83,12 @@ model project_briefs {
 }
 
 model projects {
-  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name               String              @db.VarChar(255)
   description        String?
   status             String?             @default("DISCOVERY") @db.VarChar(50)
   repo_path          String?             @db.VarChar(255)
+  github_path        String?             @db.VarChar(255)
   context_data       Json?               @default("{}")
   created_at         DateTime?           @default(now()) @db.Timestamptz(6)
   updated_at         DateTime?           @default(now()) @db.Timestamptz(6)
@@ -69,15 +98,26 @@ model projects {
   tasks              tasks[]
   ui_specs           ui_specs?
   user_stories       user_stories[]
+  execution_logs     execution_logs[]
 }
 
 model skills {
-  id                String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name              String         @unique @db.VarChar(100)
   description       String
   parameters_schema Json
   handler_path      String         @db.VarChar(255)
   agent_skills      agent_skills[]
+}
+
+model tools {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String           @unique @db.VarChar(100)
+  description       String
+  parameters_schema Json
+  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
+  agent_tools       agent_tools[]
+  execution_logs    execution_logs[]
 }
 
 model task_dependencies {
@@ -90,7 +130,7 @@ model task_dependencies {
 }
 
 model tasks {
-  id                                                            String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                                                            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   project_id                                                    String?             @db.Uuid
   title                                                         String              @db.VarChar(255)
   description                                                   String
@@ -103,13 +143,13 @@ model tasks {
   git_branches                                                  String[]            @default([])
   pr_links                                                      String[]            @default([])
   agent_commits                                                 String[]            @default([])
-  execution_log                                                 String?
   created_at                                                    DateTime?           @default(now()) @db.Timestamptz(6)
   updated_at                                                    DateTime?           @default(now()) @db.Timestamptz(6)
   completed_at                                                  DateTime?           @db.Timestamptz(6)
   task_dependencies_task_dependencies_depends_on_task_idTotasks task_dependencies[] @relation("task_dependencies_depends_on_task_idTotasks")
   task_dependencies_task_dependencies_task_idTotasks            task_dependencies[] @relation("task_dependencies_task_idTotasks")
   projects                                                      projects?           @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  execution_logs                                                execution_logs[]
 }
 
 model ui_specs {
@@ -122,7 +162,7 @@ model ui_specs {
 }
 
 model user_stories {
-  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   project_id          String?   @db.Uuid
   title               String    @db.VarChar(255)
   role                String?   @db.VarChar(100)

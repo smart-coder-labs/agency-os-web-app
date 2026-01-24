@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { Markdown } from '@/components/ui/Markdown'
-import { ArrowLeft, Edit, Clock, GitCommit, PlayCircle, FileJson, Terminal } from 'lucide-react'
+import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
+import { ArrowLeft, Edit, Clock, GitCommit, PlayCircle, FileJson, Terminal, Activity } from 'lucide-react'
 
 function mapPriority(p: number): string {
   if (p >= 4) return 'URGENT'
@@ -26,6 +27,28 @@ function StatusBadge({ status }: { status: string }) {
   return <Badge variant={map[status] || 'default'}>{status}</Badge>
 }
 
+// Reuse log mapping logic or import it if I had put it in a utility. For now duplicate inline for speed.
+function mapLogToActivity(log: any): ActivityItemProps {
+  const actorName = log.agents ? log.agents.name : (log.tools ? `Tool: ${log.tools.name}` : 'System')
+  const actorInitials = actorName.slice(0, 2).toUpperCase()
+  
+  let type: ActivityType = 'default'
+  if (log.log_type === 'ERROR') type = 'alert'
+  if (log.log_type === 'SUCCESS') type = 'success'
+  if (log.tools) type = 'commit' 
+
+  return {
+    actor: {
+      name: actorName,
+      initials: actorInitials
+    },
+    action: <span>{log.title || 'performed an action'}</span>,
+    date: new Date(log.created_at).toLocaleString(),
+    type: type,
+    children: log.detail ? <Markdown className="text-sm">{log.detail}</Markdown> : null
+  }
+}
+
 export default async function TaskDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   
@@ -34,6 +57,13 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
     include: {
         projects: {
             select: { name: true, id: true }
+        },
+        execution_logs: {
+            orderBy: { created_at: 'desc' },
+            include: {
+                agents: true,
+                tools: true
+            }
         }
     }
   }) as any
@@ -41,6 +71,7 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
   if (!task) return <div className="p-8">Task not found</div>
 
   const priorityLabel = mapPriority(task.priority)
+  const activityItems = task.execution_logs ? task.execution_logs.map(mapLogToActivity) : []
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
@@ -171,17 +202,15 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
              <Card>
                 <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
-                        <Terminal className="w-4 h-4 text-gray-700" /> Execution Logs
+                        <Activity className="w-4 h-4 text-gray-700" /> Activity Log
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {task.execution_log ? (
-                        <ScrollArea className="h-[600px] w-full rounded-md border p-4 bg-gray-50 font-mono text-sm">
-                            <Markdown>{task.execution_log}</Markdown>
-                        </ScrollArea>
+                    {activityItems.length > 0 ? (
+                        <ActivityFeed items={activityItems} />
                     ) : (
                         <div className="text-center py-12 text-gray-400 italic">
-                            No execution logs available.
+                            No logs yet.
                         </div>
                     )}
                 </CardContent>
@@ -190,8 +219,4 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
       </Tabs>
     </div>
   )
-}
-
-function ScrollArea({ className, children }: { className?: string, children: React.ReactNode }) {
-    return <div className={`overflow-auto ${className}`}>{children}</div>
 }
