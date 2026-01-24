@@ -1,27 +1,50 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import { Counters } from '@/components/ui/Counters'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import { SectionHeader } from '@/components/ui/SectionHeader'
 import { ActivityFeed } from '@/components/ui/ActivityFeed'
 import { Button } from '@/components/ui/Button'
+import { Users, Briefcase, ClipboardList, TrendingUp } from 'lucide-react'
+import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
 
 async function getCounts() {
-  const [users, projects, tasks] = await Promise.all([
-    prisma.users.count() as any,
-    prisma.projects.count() as any,
-    prisma.tasks.count() as any,
+  const [userCount, projectCount, taskCount] = await Promise.all([
+    prisma.users.count(),
+    prisma.projects.count(),
+    prisma.tasks.count(),
   ])
-  return { users, projects, tasks }
+  return { userCount, projectCount, taskCount }
 }
 
 export default async function DashboardPage() {
-  const { users, projects, tasks } = await getCounts()
+  const { userCount, projectCount, taskCount } = await getCounts()
 
-  const stats = [
-    { label: 'Users', value: users, subtitle: 'Total users' },
-    { label: 'Projects', value: projects, subtitle: 'Active projects' },
-    { label: 'Tasks', value: tasks, subtitle: 'Pending tasks' },
+  const metrics = [
+    {
+        id: 'users',
+        label: 'Total Users',
+        value: userCount,
+        change: '+12%',
+        trend: 'up' as const,
+        icon: <Users className="w-5 h-5" />,
+    },
+    {
+        id: 'projects',
+        label: 'Active Projects',
+        value: projectCount,
+        description: 'Ongoing work',
+        icon: <Briefcase className="w-5 h-5" />,
+        sparkline: [30, 45, 38, 52, 48, 60],
+        sparklineAccent: 'purple' as const,
+    },
+    {
+        id: 'tasks',
+        label: 'Pending Tasks',
+        value: taskCount,
+        change: 'High Priority',
+        trend: 'neutral' as const,
+        icon: <ClipboardList className="w-5 h-5" />,
+    }
   ]
 
   return (
@@ -31,7 +54,11 @@ export default async function DashboardPage() {
         description="Overview rápido de tu sistema."
       />
 
-      <Counters items={stats} />
+      <StatisticDisplay 
+        metrics={metrics}
+        variant="card"
+        columns={3}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <QuickLinks />

@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "users" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "email" VARCHAR(255) NOT NULL,
     "password_hash" VARCHAR(255) NOT NULL,
     "full_name" VARCHAR(255),
@@ -28,7 +28,7 @@ CREATE TABLE "agent_tools" (
 
 -- CreateTable
 CREATE TABLE "agents" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(100) NOT NULL,
     "role" VARCHAR(50) NOT NULL,
     "model" VARCHAR(100) NOT NULL,
@@ -36,6 +36,37 @@ CREATE TABLE "agents" (
     "is_active" BOOLEAN DEFAULT true,
 
     CONSTRAINT "agents_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "agent_jobs" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "agent_id" UUID NOT NULL,
+    "task_name" VARCHAR(255) NOT NULL,
+    "status" VARCHAR(50) NOT NULL,
+    "start_time" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "end_time" TIMESTAMPTZ(6),
+    "duration_ms" INTEGER,
+    "total_tokens" INTEGER NOT NULL DEFAULT 0,
+    "input_tokens" INTEGER NOT NULL DEFAULT 0,
+    "output_tokens" INTEGER NOT NULL DEFAULT 0,
+    "cost_usd" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "metadata" JSONB DEFAULT '{}',
+    "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "agent_jobs_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "agent_metrics" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "agent_id" UUID NOT NULL,
+    "cpu_usage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "memory_usage" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "active_tokens_per_sec" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "agent_metrics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -51,7 +82,7 @@ CREATE TABLE "architecture_specs" (
 
 -- CreateTable
 CREATE TABLE "execution_logs" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "project_id" UUID NOT NULL,
     "task_id" UUID,
     "agent_id" UUID,
@@ -79,7 +110,7 @@ CREATE TABLE "project_briefs" (
 
 -- CreateTable
 CREATE TABLE "projects" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(255) NOT NULL,
     "description" TEXT,
     "status" VARCHAR(50) DEFAULT 'DISCOVERY',
@@ -95,7 +126,7 @@ CREATE TABLE "projects" (
 
 -- CreateTable
 CREATE TABLE "skills" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(100) NOT NULL,
     "description" TEXT NOT NULL,
     "parameters_schema" JSONB NOT NULL,
@@ -106,7 +137,7 @@ CREATE TABLE "skills" (
 
 -- CreateTable
 CREATE TABLE "tools" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(100) NOT NULL,
     "description" TEXT NOT NULL,
     "parameters_schema" JSONB NOT NULL,
@@ -125,7 +156,7 @@ CREATE TABLE "task_dependencies" (
 
 -- CreateTable
 CREATE TABLE "tasks" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "project_id" UUID,
     "title" VARCHAR(255) NOT NULL,
     "description" TEXT NOT NULL,
@@ -158,7 +189,7 @@ CREATE TABLE "ui_specs" (
 
 -- CreateTable
 CREATE TABLE "user_stories" (
-    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "project_id" UUID,
     "title" VARCHAR(255) NOT NULL,
     "role" VARCHAR(100),
@@ -170,6 +201,27 @@ CREATE TABLE "user_stories" (
     "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "user_stories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "project_artifacts" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "project_id" UUID NOT NULL,
+    "external_name" VARCHAR(255),
+    "stitch_project_id" VARCHAR(255),
+    "stitch_screen_id" VARCHAR(255),
+    "title" VARCHAR(255),
+    "screenshot_name" VARCHAR(255),
+    "screenshot_url" TEXT,
+    "html_name" VARCHAR(255),
+    "html_url" TEXT,
+    "width" VARCHAR(50),
+    "height" VARCHAR(50),
+    "device_type" VARCHAR(50),
+    "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "project_artifacts_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -195,6 +247,12 @@ ALTER TABLE "agent_tools" ADD CONSTRAINT "agent_tools_agent_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "agent_tools" ADD CONSTRAINT "agent_tools_tool_id_fkey" FOREIGN KEY ("tool_id") REFERENCES "tools"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "agent_jobs" ADD CONSTRAINT "agent_jobs_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "agents"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "agent_metrics" ADD CONSTRAINT "agent_metrics_agent_id_fkey" FOREIGN KEY ("agent_id") REFERENCES "agents"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "architecture_specs" ADD CONSTRAINT "architecture_specs_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
@@ -228,3 +286,6 @@ ALTER TABLE "ui_specs" ADD CONSTRAINT "ui_specs_project_id_fkey" FOREIGN KEY ("p
 
 -- AddForeignKey
 ALTER TABLE "user_stories" ADD CONSTRAINT "user_stories_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "project_artifacts" ADD CONSTRAINT "project_artifacts_project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

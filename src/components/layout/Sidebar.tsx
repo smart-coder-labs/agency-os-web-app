@@ -11,6 +11,7 @@ const nav = [
   { href: "/projects", label: "Projects", icon: "Folder" },
   { href: "/tasks", label: "Tasks", icon: "CheckSquare" },
   { href: "/user-stories", label: "Stories", icon: "BookOpen" },
+  { href: "/agents", label: "Agents", icon: "Bot" },
   { href: "/users", label: "Users", icon: "Users" },
 ]
 

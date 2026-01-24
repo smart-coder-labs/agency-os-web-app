@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { TasksTable } from '@/components/tasks/TasksTable'
 import { StoriesTable } from '@/components/stories/StoriesTable'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
-import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity } from 'lucide-react'
+import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen } from 'lucide-react'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -105,6 +105,11 @@ export default async function ProjectDetail({ params }: Params) {
             <Link href={`/projects/${id}/edit`}>
               <Button variant="secondary" leftIcon={<Edit className="w-4 h-4" />}>
                 Edit
+              </Button>
+            </Link>
+            <Link href={`/user-stories/new?projectId=${id}`}>
+              <Button variant="secondary" leftIcon={<BookOpen className="w-4 h-4" />}>
+                Add Story
               </Button>
             </Link>
             <Link href={`/tasks/new?projectId=${id}`}>

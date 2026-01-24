@@ -44,6 +44,35 @@ model agents {
   agent_skills   agent_skills[]
   agent_tools    agent_tools[]
   execution_logs execution_logs[]
+  agent_jobs     agent_jobs[]
+  agent_metrics  agent_metrics[]
+}
+
+model agent_jobs {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id      String    @db.Uuid
+  task_name     String    @db.VarChar(255)
+  status        String    @db.VarChar(50)
+  start_time    DateTime  @default(now()) @db.Timestamptz(6)
+  end_time      DateTime? @db.Timestamptz(6)
+  duration_ms   Int?
+  total_tokens  Int       @default(0)
+  input_tokens  Int       @default(0)
+  output_tokens Int       @default(0)
+  cost_usd      Float     @default(0.0)
+  metadata      Json?     @default("{}")
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  agents        agents    @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model agent_metrics {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agent_id              String    @db.Uuid
+  cpu_usage             Float     @default(0.0)
+  memory_usage          Float     @default(0.0)
+  active_tokens_per_sec Float     @default(0.0)
+  created_at            DateTime? @default(now()) @db.Timestamptz(6)
+  agents                agents    @relation(fields: [agent_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model architecture_specs {
@@ -99,6 +128,7 @@ model projects {
   ui_specs           ui_specs?
   user_stories       user_stories[]
   execution_logs     execution_logs[]
+  project_artifacts  project_artifacts[]
 }
 
 model skills {
@@ -173,4 +203,23 @@ model user_stories {
   status              String?   @default("PENDING") @db.VarChar(20)
   created_at          DateTime? @default(now()) @db.Timestamptz(6)
   projects            projects? @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model project_artifacts {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id        String    @db.Uuid
+  external_name     String?   @db.VarChar(255)
+  stitch_project_id String?   @db.VarChar(255)
+  stitch_screen_id  String?   @db.VarChar(255)
+  title             String?   @db.VarChar(255)
+  screenshot_name   String?   @db.VarChar(255)
+  screenshot_url    String?
+  html_name         String?   @db.VarChar(255)
+  html_url          String?
+  width             String?   @db.VarChar(50)
+  height            String?   @db.VarChar(50)
+  device_type       String?   @db.VarChar(50)
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+  projects          projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }

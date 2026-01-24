@@ -42,11 +42,11 @@ export const Sparkline: React.FC<SparklineProps> = ({
             : 'rgb(0, 122, 255)'; // accent-blue
 
     const strokeColor = color || defaultColor;
-    const areaColor = fillColor || (calculatedTrend === 'up'
-        ? 'rgba(52, 199, 89, 0.1)'
+    const areaColorStart = fillColor || (calculatedTrend === 'up'
+        ? 'rgba(52, 199, 89, 0.2)'
         : calculatedTrend === 'down'
-            ? 'rgba(255, 59, 48, 0.1)'
-            : 'rgba(0, 122, 255, 0.1)');
+            ? 'rgba(255, 59, 48, 0.2)'
+            : 'rgba(0, 122, 255, 0.2)');
 
     // Calculate min and max values
     const min = Math.min(...data);
@@ -70,18 +70,27 @@ export const Sparkline: React.FC<SparklineProps> = ({
         ? `${linePath} L ${width},${height} L 0,${height} Z`
         : '';
 
+    const gradientId = React.useId().replace(/:/g, '');
+
     return (
         <svg
-            width={width}
-            height={height}
+            viewBox={`0 0 ${width} ${height}`}
             className={`sparkline ${className}`}
-            style={{ display: 'block' }}
+            preserveAspectRatio="none"
+            style={{ display: 'block', width: '100%', height: '100%' }}
         >
+            <defs>
+                <linearGradient id={`gradient-${gradientId}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={strokeColor} stopOpacity="0.3" />
+                    <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
+                </linearGradient>
+            </defs>
+
             {/* Area fill */}
             {showArea && (
                 <path
                     d={areaPath}
-                    fill={areaColor}
+                    fill={`url(#gradient-${gradientId})`}
                     stroke="none"
                 />
             )}
