@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/Button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
 import { ScrollArea } from "@/components/ui/ScrollArea"
@@ -18,6 +18,14 @@ const nav = [
 export default function Sidebar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [user, setUser] = useState<{ full_name: string; email: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => setUser(data))
+      .catch(() => setUser(null))
+  }, [])
 
   const NavList = (
     <ul className="space-y-1 p-2">
@@ -49,15 +57,15 @@ export default function Sidebar() {
     <div className="p-4 border-t border-[var(--color-border)] mt-auto">
       <div className="flex items-center gap-3 mb-4">
         <Avatar size="sm">
-          <AvatarImage src="https://github.com/shadcn.png" alt="User" />
-          <AvatarFallback>AD</AvatarFallback>
+          <AvatarImage src={`https://ui-avatars.com/api/?name=${user?.full_name || user?.email || 'User'}&background=random`} alt="User" />
+          <AvatarFallback>{(user?.full_name || 'U').charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">Admin User</p>
-          <p className="text-xs text-gray-500 truncate">admin@agencyos.com</p>
+          <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name || 'Loading...'}</p>
+          <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
         </div>
       </div>
-      <Button 
+      < Button 
         variant="subtle" 
         size="sm" 
         fullWidth
