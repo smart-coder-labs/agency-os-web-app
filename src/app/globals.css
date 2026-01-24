@@ -1,8 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-* { @apply box-border; }
-html, body { @apply p-0 m-0 font-sans bg-gray-50 text-gray-900; }
-a { @apply text-blue-600 hover:underline; }
-main { @apply max-w-6xl mx-auto; }
+:root {
+  /* Tailwind v4: poné tus variables acá */
+  --color-primary: #2563eb; /* azul default */
+  --color-bg: #f9fafb;      /* gray-50 */
+  --color-text: #111827;    /* gray-900 */
+  --color-border: #e5e7eb;  /* gray-200 */
+}
+
+@layer base {
+  html, body { height: 100%; }
+}
