@@ -13,18 +13,27 @@ async function getCounts() {
 export default async function DashboardPage() {
   const { users, projects, tasks } = await getCounts()
   return (
-    <main style={{ padding: 24, display: 'grid', gap: 16 }}>
-      <h1>Dashboard</h1>
-      <div style={{ display: 'flex', gap: 16 }}>
-        <div>Users: {users}</div>
-        <div>Projects: {projects}</div>
-        <div>Tasks: {tasks}</div>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-semibold">Dashboard</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="text-sm text-gray-600">Users</div>
+          <div className="text-3xl font-semibold">{users}</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="text-sm text-gray-600">Projects</div>
+          <div className="text-3xl font-semibold">{projects}</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="text-sm text-gray-600">Tasks</div>
+          <div className="text-3xl font-semibold">{tasks}</div>
+        </div>
       </div>
-      <nav style={{ display: 'flex', gap: 12 }}>
-        <Link href="/users">Users</Link>
-        <Link href="/projects">Projects</Link>
-        <Link href="/tasks">Tasks</Link>
+      <nav className="flex gap-3 text-sm">
+        <Link className="text-blue-600" href="/users">Users</Link>
+        <Link className="text-blue-600" href="/projects">Projects</Link>
+        <Link className="text-blue-600" href="/tasks">Tasks</Link>
       </nav>
-    </main>
+    </div>
   )
 }

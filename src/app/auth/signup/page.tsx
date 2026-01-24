@@ -24,25 +24,25 @@ export default function SignUpPage() {
   }
 
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Sign Up</h1>
-      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12, maxWidth: 360 }}>
-        <label>
-          Full name
-          <input value={fullName} onChange={(e) => setFullName(e.target.value)} type="text" />
+    <div className="max-w-md mx-auto bg-white shadow-sm border border-gray-200 rounded-lg p-6 space-y-4">
+      <h1 className="text-xl font-semibold">Sign Up</h1>
+      <form onSubmit={onSubmit} className="grid gap-3">
+        <label className="grid gap-1 text-sm">
+          <span>Full name</span>
+          <input className="border rounded-md px-3 py-2" value={fullName} onChange={(e) => setFullName(e.target.value)} type="text" />
         </label>
-        <label>
-          Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+        <label className="grid gap-1 text-sm">
+          <span>Email</span>
+          <input className="border rounded-md px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
         </label>
-        <label>
-          Password
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
+        <label className="grid gap-1 text-sm">
+          <span>Password</span>
+          <input className="border rounded-md px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} type="password" required />
         </label>
-        <button type="submit">Create Account</button>
-        {error && <p style={{ color: 'crimson' }}>{error}</p>}
+        <button className="inline-flex items-center rounded-md bg-blue-600 text-white px-4 py-2 hover:bg-blue-700" type="submit">Create Account</button>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
       </form>
-      <p>¿Ya tenés cuenta? <a href="/auth/signin">Sign In</a></p>
-    </main>
+      <p className="text-sm">¿Ya tenés cuenta? <a className="text-blue-600" href="/auth/signin">Sign In</a></p>
+    </div>
   )
 }

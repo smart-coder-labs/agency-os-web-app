@@ -1,4 +1,8 @@
-* { box-sizing: border-box; }
-html, body { padding: 0; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-a { color: #0f62fe; text-decoration: none; }
-main { max-width: 1080px; margin: 0 auto; }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { @apply box-border; }
+html, body { @apply p-0 m-0 font-sans bg-gray-50 text-gray-900; }
+a { @apply text-blue-600 hover:underline; }
+main { @apply max-w-6xl mx-auto; }
