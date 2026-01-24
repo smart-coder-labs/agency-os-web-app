@@ -14,6 +14,11 @@ export default async function ProjectDetail({ params }: Params) {
       <h1>{project.name}</h1>
       <p>{project.description}</p>
       <p>Status: {project.status}</p>
+      <p>
+        <Link href={`/projects/${id}/edit`}>Edit</Link> ·
+        <Link href={`/projects/${id}/brief`}>Brief</Link> ·
+        <Link href={`/projects/${id}/ui-specs`}>UI Specs</Link>
+      </p>
       <section>
         <h2>Tasks</h2>
         <Link href={`/projects/${id}/tasks/new`}>New Task</Link>
