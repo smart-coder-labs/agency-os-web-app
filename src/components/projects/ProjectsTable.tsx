@@ -1,4 +1,5 @@
 "use client"
+import { useState } from 'react'
 import { Table, Column } from '@/components/ui/Table'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
@@ -20,6 +21,9 @@ const statusVariantMap: Record<string, "default" | "primary" | "success" | "warn
 }
 
 export function ProjectsTable({ data }: { data: Project[] }) {
+  const [page, setPage] = useState(1)
+  const pageSize = 10
+
   const columns: Column<Project>[] = [
     {
       key: 'name',
@@ -69,11 +73,13 @@ export function ProjectsTable({ data }: { data: Project[] }) {
     <Table
       columns={columns} 
       data={data} 
-      selectable
+      // selectable
       hoverable
       striped={false}
       density="comfortable"
-      pageSize={10}
+      page={page}
+      pageSize={pageSize}
+      onPageChange={setPage}
     />
   )
 }
