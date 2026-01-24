@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
+import Card, { CardBody } from '@/components/ui/Card'
+import Button from '@/components/ui/Button'
 
 async function getCounts() {
   const [users, projects, tasks] = await Promise.all([
@@ -33,10 +35,12 @@ export default async function DashboardPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-white border border-[var(--color-border)] rounded-lg p-4">
-      <div className="text-sm text-gray-600">{label}</div>
-      <div className="text-3xl font-semibold">{value}</div>
-    </div>
+    <Card>
+      <CardBody>
+        <div className="text-sm text-gray-600">{label}</div>
+        <div className="text-3xl font-semibold">{value}</div>
+      </CardBody>
+    </Card>
   )
 }
 
@@ -47,22 +51,26 @@ function QuickLinks() {
     { href: '/user-stories/new', label: 'Create Story' },
   ]
   return (
-    <div className="bg-white border border-[var(--color-border)] rounded-lg p-4">
-      <div className="font-medium mb-2">Quick Actions</div>
-      <ul className="space-y-2 text-blue-600 text-sm">
-        {items.map(i => (
-          <li key={i.href}><Link href={i.href}>{i.label}</Link></li>
-        ))}
-      </ul>
-    </div>
+    <Card>
+      <CardBody>
+        <div className="font-medium mb-2">Quick Actions</div>
+        <ul className="space-y-2 text-blue-600 text-sm">
+          {items.map(i => (
+            <li key={i.href}><Link href={i.href}>{i.label}</Link></li>
+          ))}
+        </ul>
+      </CardBody>
+    </Card>
   )
 }
 
 function ActivityEmpty() {
   return (
-    <div className="bg-white border border-[var(--color-border)] rounded-lg p-4">
-      <div className="font-medium mb-2">Recent Activity</div>
-      <p className="text-sm text-gray-600">Todavía no hay actividad. Empezá creando un proyecto.</p>
-    </div>
+    <Card>
+      <CardBody>
+        <div className="font-medium mb-2">Recent Activity</div>
+        <p className="text-sm text-gray-600">Todavía no hay actividad. Empezá creando un proyecto.</p>
+      </CardBody>
+    </Card>
   )
 }
