@@ -10,7 +10,7 @@ export default function NewProjectPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const res = await fetch('/projects', {
+    const res = await fetch('/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, description, status })
