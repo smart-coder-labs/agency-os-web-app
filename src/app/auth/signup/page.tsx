@@ -10,7 +10,7 @@ export default function SignUpPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const res = await fetch('/auth/signup', {
+    const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, fullName })

@@ -9,7 +9,7 @@ export default function SignInPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    const res = await fetch('/auth/signin', {
+    const res = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
