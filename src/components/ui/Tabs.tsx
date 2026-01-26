@@ -132,7 +132,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
         >
             <span
                 className={cn(
-                    "relative z-20 transition-colors duration-200",
+                    "relative z-20 transition-colors duration-200 flex items-center justify-center gap-2",
                     isSelected ? "text-text-primary" : "text-text-secondary hover:text-text-primary"
                 )}
             >

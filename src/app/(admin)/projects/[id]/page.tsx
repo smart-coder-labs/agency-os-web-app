@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/Badge'
 import { TasksTable } from '@/components/tasks/TasksTable'
 import { StoriesTable } from '@/components/stories/StoriesTable'
+import { UIArtifactsGrid } from '@/components/artifacts/UIArtifactsGrid'
+import { Markdown } from '@/components/ui/Markdown'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
-import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen } from 'lucide-react'
+import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2 } from 'lucide-react'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -49,7 +51,10 @@ export default async function ProjectDetail({ params }: Params) {
       include: {
         architecture_specs: true,
         project_briefs: true,
-        ui_specs: true
+        ui_specs: true,
+        project_artifacts: {
+          orderBy: { created_at: 'desc' }
+        }
       }
     }),
     prisma.tasks.findMany({ 
@@ -124,14 +129,36 @@ export default async function ProjectDetail({ params }: Params) {
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="overview">
+             <LayoutDashboard className="w-4 h-4 opacity-70" />
+             Overview
+          </TabsTrigger>
           <TabsTrigger value="tasks">
+            <CheckSquare className="w-4 h-4 opacity-70" />
             Tasks 
             <Badge variant="default" size="sm" className="ml-2 px-1.5 h-5 min-w-[20px]">{tasks.length}</Badge>
           </TabsTrigger>
           <TabsTrigger value="stories">
+             <BookOpen className="w-4 h-4 opacity-70" />
              Stories
              <Badge variant="default" size="sm" className="ml-2 px-1.5 h-5 min-w-[20px]">{stories.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="brief">
+             <FileText className="w-4 h-4 opacity-70" />
+             Brief
+          </TabsTrigger>
+          <TabsTrigger value="architecture">
+             <Cpu className="w-4 h-4 opacity-70" />
+             Architecture
+          </TabsTrigger>
+          <TabsTrigger value="ui-specs">
+             <LayoutTemplate className="w-4 h-4 opacity-70" />
+             UI Specs
+          </TabsTrigger>
+          <TabsTrigger value="artifacts">
+             <Layers className="w-4 h-4 opacity-70" />
+             UI Artifacts
+             <Badge variant="default" size="sm" className="ml-2 px-1.5 h-5 min-w-[20px]">{project.project_artifacts?.length || 0}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -170,40 +197,6 @@ export default async function ProjectDetail({ params }: Params) {
                   )}
                 </CardContent>
              </Card>
-
-             {/* Brief */}
-             <Card className="hover:border-blue-200 transition-colors group cursor-pointer">
-                <Link href={`/projects/${id}/brief`} className="block h-full"> 
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2 group-hover:text-blue-600">
-                      <FileText className="w-4 h-4 text-purple-500" />
-                      Project Brief
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">
-                      {project.project_briefs ? 'View project goals and target audience.' : 'Not defined yet.'}
-                    </p>
-                  </CardContent>
-                </Link>
-             </Card>
-
-             {/* Specs */}
-             <Card className="hover:border-blue-200 transition-colors group cursor-pointer">
-                <Link href={`/projects/${id}/ui-specs`} className="block h-full">
-                  <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2 group-hover:text-blue-600">
-                      <LayoutTemplate className="w-4 h-4 text-pink-500" />
-                      UI Specifications
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500">
-                      {project.ui_specs ? 'View design system and components.' : 'Not defined yet.'}
-                    </p>
-                  </CardContent>
-                </Link>
-             </Card>
           </div>
 
           {/* Activity Logs */}
@@ -233,6 +226,149 @@ export default async function ProjectDetail({ params }: Params) {
           <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
              <StoriesTable data={formattedStories} />
           </div>
+        </TabsContent>
+
+        {/* Brief Content */}
+        <TabsContent value="brief">
+           <Card>
+              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                <div>
+                   <CardTitle className="text-lg">Project Brief</CardTitle>
+                   <CardDescription>Goals and project strategy</CardDescription>
+                </div>
+                <Link href={`/projects/${project.id}/brief`}>
+                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit Brief</Button>
+                </Link>
+              </CardHeader>
+              <CardContent className="prose prose-slate max-w-none">
+                {project.project_briefs?.target_audience && (
+                   <div className="mb-8 p-4 bg-purple-50 rounded-lg border border-purple-100">
+                      <h4 className="text-purple-900 font-semibold mb-1 text-sm uppercase tracking-wider">Target Audience</h4>
+                      <p className="text-purple-800">{project.project_briefs.target_audience}</p>
+                   </div>
+                )}
+                {project.project_briefs?.content ? (
+                   <Markdown>{project.project_briefs.content}</Markdown>
+                ) : (
+                   <div className="text-center py-12 text-gray-400 italic">No brief content defined yet.</div>
+                )}
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        {/* Architecture Content */}
+        <TabsContent value="architecture">
+           <Card>
+              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                <div>
+                   <CardTitle className="text-lg">Architecture Specifications</CardTitle>
+                   <CardDescription>Technical stack and system design</CardDescription>
+                </div>
+                <Link href={`/projects/${id}/architecture`}>
+                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit Architecture</Button>
+                </Link>
+              </CardHeader>
+              <CardContent className="prose prose-slate max-w-none">
+                {project.architecture_specs?.content || (project.architecture_specs?.diagrams as any[])?.length > 0 || Object.keys((project.architecture_specs?.stack_decisions as object) || {}).length > 0 ? (
+                  <div className="space-y-10">
+                    {project.architecture_specs?.content && <Markdown>{project.architecture_specs.content}</Markdown>}
+                    
+                    {/* Diagrams Section */}
+                    {((project.architecture_specs?.diagrams as any[])?.length ?? 0) > 0 && (
+                        <div className="pt-8 border-t border-gray-100">
+                            <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 not-prose">
+                                <Cpu className="w-5 h-5 text-blue-500" /> Architecture Diagrams
+                            </h3>
+                            <div className="space-y-8">
+                                {(project.architecture_specs?.diagrams as any[]).map((diag, i) => (
+                                    <div key={i} className="space-y-4">
+                                        {diag.name && <h4 className="font-semibold text-gray-700 not-prose">{diag.name}</h4>}
+                                        <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 overflow-hidden not-prose">
+                                            <Markdown>{` \`\`\`mermaid\n${diag.code || diag.content}\n\`\`\` `}</Markdown>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Stack Decisions */}
+                    {Object.keys((project.architecture_specs?.stack_decisions as object) || {}).length > 0 && (
+                        <div className="pt-8 border-t border-gray-100">
+                            <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 not-prose">
+                                <Code2 className="w-5 h-5 text-purple-500" /> Tech Stack Decisions
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 not-prose">
+                                {Object.entries((project.architecture_specs?.stack_decisions as object)).map(([key, value]) => (
+                                    <div key={key} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-none block mb-1">{key}</span>
+                                        <span className="text-sm font-medium text-gray-900">{String(value)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                  </div>
+                ) : (
+                   <div className="text-center py-12 text-gray-400 italic">No architecture specifications defined yet.</div>
+                )}
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        {/* UI Specs Content */}
+        <TabsContent value="ui-specs">
+           <Card>
+              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                <div>
+                   <CardTitle className="text-lg">UI Specifications</CardTitle>
+                   <CardDescription>Design system and wireframes</CardDescription>
+                </div>
+                <Link href={`/projects/${project.id}/ui-specs`}>
+                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit UI Specs</Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                 <div className="space-y-8">
+                    {project.ui_specs?.wireframes_md && (
+                       <div>
+                          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Wireframes</h4>
+                          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                             <Markdown>{project.ui_specs.wireframes_md}</Markdown>
+                          </div>
+                       </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       {project.ui_specs?.design_system && (
+                          <div>
+                             <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Design System Tokens</h4>
+                             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                {JSON.stringify(project.ui_specs.design_system, null, 2)}
+                             </pre>
+                          </div>
+                       )}
+                       {project.ui_specs?.components && (
+                          <div>
+                             <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Components</h4>
+                             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                {JSON.stringify(project.ui_specs.components, null, 2)}
+                             </pre>
+                          </div>
+                       )}
+                    </div>
+
+                    {!project.ui_specs && (
+                       <div className="text-center py-12 text-gray-400 italic">No UI specifications defined yet.</div>
+                    )}
+                 </div>
+              </CardContent>
+           </Card>
+        </TabsContent>
+
+        {/* UI Artifacts Content */}
+        <TabsContent value="artifacts">
+           <UIArtifactsGrid artifacts={project.project_artifacts} />
         </TabsContent>
       </Tabs>
     </div>

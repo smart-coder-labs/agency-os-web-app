@@ -12,3 +12,9 @@
 @layer base {
   html, body { height: 100%; }
 }
+
+/* Hide mermaid error overlays that escape the component */
+#mermaid-error-overlay, 
+.mermaid-error {
+  display: none !important;
+}

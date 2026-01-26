@@ -9,9 +9,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
 import { Markdown } from '@/components/ui/Markdown'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Save, Eye, Edit2, Loader2, RefreshCw } from 'lucide-react'
+import { Skeleton } from '@/components/ui/Skeleton'
+import { use } from 'react'
 
-export default function ProjectBriefPage({ params }: { params: { id: string } }) {
-  const projectId = params.id
+export default function ProjectBriefPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: projectId } = use(params)
   const router = useRouter()
   const [content, setContent] = useState('')
   const [goals, setGoals] = useState('[]')
@@ -64,7 +66,7 @@ export default function ProjectBriefPage({ params }: { params: { id: string } })
             })
         })
         if (!res.ok) throw new Error('Failed to save')
-        router.refresh()
+        router.push(`/projects/${projectId}`)
         // Optional: Show success toast here
     } catch (error) {
         alert('Failed to save changes')
@@ -102,10 +104,10 @@ export default function ProjectBriefPage({ params }: { params: { id: string } })
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-4">
             <TabsList>
-                <TabsTrigger value="write" className="flex items-center gap-2">
+                <TabsTrigger value="write" className="flex items-center gap-2" disabled={loading}>
                     <Edit2 className="w-4 h-4" /> Write
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="flex items-center gap-2">
+                <TabsTrigger value="preview" className="flex items-center gap-2" disabled={loading}>
                     <Eye className="w-4 h-4" /> Preview
                 </TabsTrigger>
             </TabsList>
@@ -115,36 +117,48 @@ export default function ProjectBriefPage({ params }: { params: { id: string } })
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="md:col-span-2">
                     <CardContent className="pt-6">
-                        <Textarea 
-                            label="Content (Markdown)" 
-                            value={content} 
-                            onChange={(e) => setContent(e.target.value)} 
-                            className="font-mono text-sm min-h-[400px]"
-                            placeholder="# Project Overview..."
-                        />
+                        {loading ? (
+                          <Skeleton className="h-[400px] w-full" />
+                        ) : (
+                          <Textarea 
+                              label="Content (Markdown)" 
+                              value={content} 
+                              onChange={(e) => setContent(e.target.value)} 
+                              className="font-mono text-sm min-h-[400px]"
+                              placeholder="# Project Overview..."
+                          />
+                        )}
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardContent className="pt-6">
-                        <Input 
-                            label="Target Audience" 
-                            value={targetAudience} 
-                            onChange={(e) => setTargetAudience(e.target.value)} 
-                            placeholder="e.g. Small business owners..."
-                        />
+                        {loading ? (
+                          <Skeleton className="h-10 w-full mb-2" />
+                        ) : (
+                          <Input 
+                              label="Target Audience" 
+                              value={targetAudience} 
+                              onChange={(e) => setTargetAudience(e.target.value)} 
+                              placeholder="e.g. Small business owners..."
+                          />
+                        )}
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardContent className="pt-6">
-                        <Textarea 
-                            label="Goals (JSON Array)" 
-                            value={goals} 
-                            onChange={(e) => setGoals(e.target.value)} 
-                            className="font-mono text-sm min-h-[100px]"
-                            placeholder='["Goal 1", "Goal 2"]'
-                        />
+                        {loading ? (
+                          <Skeleton className="h-32 w-full" />
+                        ) : (
+                          <Textarea 
+                              label="Goals (JSON Array)" 
+                              value={goals} 
+                              onChange={(e) => setGoals(e.target.value)} 
+                              className="font-mono text-sm min-h-[100px]"
+                              placeholder='["Goal 1", "Goal 2"]'
+                          />
+                        )}
                     </CardContent>
                 </Card>
             </div>
