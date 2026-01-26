@@ -11,6 +11,9 @@ import { UIArtifactsGrid } from '@/components/artifacts/UIArtifactsGrid'
 import { Markdown } from '@/components/ui/Markdown'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
 import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
+import { AgentsTable } from '@/components/agents/AgentsTable'
+import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { formatCompactNumber } from '@/lib/utils'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -45,7 +48,7 @@ function mapLogToActivity(log: any): ActivityItemProps {
 export default async function ProjectDetail({ params }: Params) {
   const { id } = await params
   
-  const [project, tasks, stories, logs, agents] = await Promise.all([
+  const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount] = await Promise.all([
     prisma.projects.findUnique({ 
       where: { id },
       include: {
@@ -86,12 +89,31 @@ export default async function ProjectDetail({ params }: Params) {
         agent_metrics: {
           orderBy: { created_at: 'desc' },
           take: 1
-        }
+        },
+        agent_jobs: true
       }
-    })
+    }),
+    prisma.tasks.count({ where: { project_id: id } }),
+    prisma.tasks.count({ where: { project_id: id, status: 'DONE' } })
   ]) as any[]
 
   if (!project) return <div className="p-8">Project not found</div>
+
+  const totalTasks = tasksCount || 0
+  const completedTasks = completedTasksCount || 0
+  const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+
+  // Aggregate Agent Metrics
+  const projectAgents = agents || []
+  const totalTokens = projectAgents.reduce((acc: number, agent: any) => 
+    acc + (agent.agent_jobs?.reduce((sum: number, job: any) => sum + (job.total_tokens || 0), 0) || 0), 0
+  )
+  const totalJobs = projectAgents.reduce((acc: number, agent: any) => 
+    acc + (agent.agent_jobs?.length || 0), 0
+  )
+  const avgMemory = projectAgents.length > 0 
+    ? projectAgents.reduce((acc: number, agent: any) => acc + (agent.agent_metrics?.[0]?.memory_usage || 0), 0) / projectAgents.length 
+    : 0
 
   // Data mapping for tables
   const formattedTasks = tasks.map((t: any) => ({
@@ -108,7 +130,7 @@ export default async function ProjectDetail({ params }: Params) {
   const activityItems = logs.map(mapLogToActivity)
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
       <SectionHeader 
         title={
@@ -139,6 +161,47 @@ export default async function ProjectDetail({ params }: Params) {
             </Link>
           </div>
         }
+      />
+
+      {/* Analytics Section */}
+      <StatisticDisplay 
+        metrics={[
+            {
+                id: 'tokens-consumed',
+                label: 'Tokens Consumed',
+                value: formatCompactNumber(totalTokens),
+                icon: <Activity className="w-5 h-5" />,
+                sparkline: [30, 45, 35, 50, 40, 60, 55],
+                sparklineAccent: 'blue',
+            },
+            {
+                id: 'agent-jobs',
+                label: 'Agent Jobs',
+                value: totalJobs,
+                icon: <Cpu className="w-5 h-5" />,
+                sparkline: [10, 20, 15, 25, 22, 30, 28],
+                sparklineAccent: 'purple',
+            },
+            {
+                id: 'avg-memory',
+                label: 'Avg Memory Usage',
+                value: `${avgMemory.toFixed(1)} MB`,
+                icon: <Layers className="w-5 h-5" />,
+                sparkline: [40, 42, 38, 45, 43, 41, 39],
+                sparklineAccent: 'orange',
+            },
+            {
+                id: 'task-progress',
+                label: 'Task Progress',
+                value: `${completionRate}%`,
+                change: `${completedTasks}/${totalTasks} tasks`,
+                trend: completionRate > 50 ? 'up' : 'neutral',
+                icon: <CheckSquare className="w-5 h-5" />,
+                sparkline: [0, 10, 25, 40, 50, 65, 80],
+                sparklineAccent: 'green',
+            }
+        ]}
+        columns={4}
       />
 
       {/* Tabs */}
@@ -383,58 +446,25 @@ export default async function ProjectDetail({ params }: Params) {
                </CardContent>
             </Card>
          </TabsContent>
+         <TabsContent value="artifacts">
+            <UIArtifactsGrid artifacts={project.project_artifacts || []} />
+         </TabsContent>
+
          {/* Agents Content */}
          <TabsContent value="agents">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               {agents.length > 0 ? (
-                  agents.map((agent: any) => (
-                    <Card key={agent.id} className="relative overflow-hidden group hover:shadow-lg transition-apple border-gray-100">
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                              {agent.role === 'DEVELOPER' || agent.role === 'ARCHITECT' ? <FileCode className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
-                            </div>
-                            <div>
-                              <CardTitle className="text-base font-semibold">{agent.name}</CardTitle>
-                              <CardDescription className="text-xs uppercase tracking-wider font-bold text-blue-500">{agent.role}</CardDescription>
-                            </div>
-                          </div>
-                          <Badge variant={agent.is_active ? 'success' : 'default'} className="h-5">
-                            {agent.is_active ? 'Active' : 'Offline'}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="text-sm text-gray-600 line-clamp-3 italic min-h-[60px]">
-                          "{agent.system_prompt.substring(0, 150)}..."
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Model</span>
-                            <div className="text-sm font-medium text-gray-900 truncate">{agent.model}</div>
-                          </div>
-                          <div className="space-y-1">
-                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Avg CPU</span>
-                            <div className="text-sm font-medium text-gray-900">
-                              {agent.agent_metrics?.[0]?.cpu_usage ? `${agent.agent_metrics[0].cpu_usage.toFixed(1)}%` : 'N/A'}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-               ) : (
-                  <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                       <Users className="w-8 h-8" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">No Agents Found</h3>
-                    <p className="text-gray-500 max-w-xs mx-auto text-sm">No agents have been involved in this project yet. Start a task to assign an agent.</p>
-                  </div>
-               )}
-            </div>
+            {agents.length > 0 ? (
+               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                  <AgentsTable data={agents} />
+               </div>
+            ) : (
+               <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
+                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                    <Users className="w-8 h-8" />
+                 </div>
+                 <h3 className="text-lg font-semibold text-gray-900 mb-1">No Agents Found</h3>
+                 <p className="text-gray-500 max-w-xs mx-auto text-sm">No agents have been involved in this project yet. Start a task to assign an agent.</p>
+               </div>
+            )}
          </TabsContent>
       </Tabs>
     </div>

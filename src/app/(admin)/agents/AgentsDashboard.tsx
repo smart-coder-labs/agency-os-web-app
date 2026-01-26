@@ -8,6 +8,7 @@ import { Search, Filter, MoreVertical, Plus, Bot, Zap, Database, Activity } from
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { AgentsTable } from '@/components/agents/AgentsTable'
 
 interface Agent {
     id: string
@@ -126,82 +127,8 @@ export function AgentsDashboard({ agents: initialAgents }: AgentsDashboardProps)
             </div>
 
             {/* Agents List */}
-            <div className="bg-surface-primary border border-border-primary rounded-xl overflow-hidden shadow-sm">
-                <div className="grid grid-cols-12 gap-4 p-4 border-b border-border-primary bg-surface-secondary/30 text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                    <div className="col-span-4 pl-2">Agent & Role</div>
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-3">Current Task</div>
-                    <div className="col-span-2 text-center">24h Performance</div>
-                    <div className="col-span-1 text-right pr-2">Actions</div>
-                </div>
-
-                <div className="divide-y divide-border-primary">
-                    <AnimatePresence initial={false}>
-                    {filteredAgents.map((agent) => (
-                        <motion.div 
-                            key={agent.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-surface-secondary/20 transition-colors group"
-                        >
-                            {/* Agent Info */}
-                            <div className="col-span-4 flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm ${
-                                    agent.role.includes('Analyst') ? 'bg-blue-500' :
-                                    agent.role.includes('Research') ? 'bg-purple-500' :
-                                    agent.role.includes('Ops') ? 'bg-red-500' : 'bg-gray-500'
-                                }`}>
-                                   {/* Simple Icon based on role */}
-                                   {agent.role.includes('Analyst') ? <Database className="w-5 h-5"/> : <Bot className="w-5 h-5"/>}
-                                </div>
-                                <div>
-                                    <Link href={`/agents/${agent.id}`} className="hover:text-blue-600 transition-colors">
-                                        <h4 className="text-sm font-semibold text-text-primary">{agent.name}</h4>
-                                    </Link>
-                                    <p className="text-xs text-text-secondary">{agent.role}</p>
-                                </div>
-                            </div>
-
-                            {/* Status */}
-                            <div className="col-span-2">
-                                {getStatusBadge(agent.status!)}
-                            </div>
-
-                            {/* Task */}
-                            <div className="col-span-3">
-                                <p className="text-sm text-text-secondary truncate">{agent.currentTask}</p>
-                            </div>
-
-                            {/* Performance */}
-                            <div className="col-span-2 flex items-center justify-center gap-1 h-8">
-                                {agent.performance?.map((val, i) => (
-                                    <div 
-                                        key={i} 
-                                        className={`w-1.5 rounded-full transition-all ${
-                                            val > 80 ? 'bg-blue-500' : val > 40 ? 'bg-blue-500/50' : 'bg-blue-500/20'
-                                        }`}
-                                        style={{ height: `${20 + (val/100)*60}%` }} 
-                                    />
-                                ))}
-                            </div>
-
-                            {/* Actions */}
-                            <div className="col-span-1 flex justify-end">
-                                <Button variant="ghost" size="sm" className="w-8 h-8 p-0 flex items-center justify-center">
-                                    <MoreVertical className="w-4 h-4 text-text-secondary" />
-                                </Button>
-                            </div>
-                        </motion.div>
-                    ))}
-                    </AnimatePresence>
-                    
-                    {filteredAgents.length === 0 && (
-                         <div className="p-8 text-center text-text-tertiary">
-                             No agents found matching your filter.
-                         </div>
-                    )}
-                </div>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                <AgentsTable data={filteredAgents} />
             </div>
 
         </div>
