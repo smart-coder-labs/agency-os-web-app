@@ -10,7 +10,7 @@ import { StoriesTable } from '@/components/stories/StoriesTable'
 import { UIArtifactsGrid } from '@/components/artifacts/UIArtifactsGrid'
 import { Markdown } from '@/components/ui/Markdown'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
-import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2 } from 'lucide-react'
+import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -45,7 +45,7 @@ function mapLogToActivity(log: any): ActivityItemProps {
 export default async function ProjectDetail({ params }: Params) {
   const { id } = await params
   
-  const [project, tasks, stories, logs] = await Promise.all([
+  const [project, tasks, stories, logs, agents] = await Promise.all([
     prisma.projects.findUnique({ 
       where: { id },
       include: {
@@ -72,6 +72,21 @@ export default async function ProjectDetail({ params }: Params) {
       include: {
         agents: true,
         tools: true
+      }
+    }),
+    prisma.agents.findMany({
+      where: {
+        execution_logs: {
+          some: {
+            project_id: id
+          }
+        }
+      },
+      include: {
+        agent_metrics: {
+          orderBy: { created_at: 'desc' },
+          take: 1
+        }
       }
     })
   ]) as any[]
@@ -151,14 +166,18 @@ export default async function ProjectDetail({ params }: Params) {
              <Cpu className="w-4 h-4 opacity-70" />
              Architecture
           </TabsTrigger>
-          <TabsTrigger value="ui-specs">
+          <TabsTrigger value="ui-specs" className="flex items-center gap-2">
              <LayoutTemplate className="w-4 h-4 opacity-70" />
              UI Specs
           </TabsTrigger>
-          <TabsTrigger value="artifacts">
+          <TabsTrigger value="artifacts" className="flex items-center gap-2">
              <Layers className="w-4 h-4 opacity-70" />
              UI Artifacts
              <Badge variant="default" size="sm" className="ml-2 px-1.5 h-5 min-w-[20px]">{project.project_artifacts?.length || 0}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="agents" className="flex items-center gap-2">
+             <Users className="w-4 h-4 opacity-70" />
+             Agents
           </TabsTrigger>
         </TabsList>
 
@@ -315,61 +334,108 @@ export default async function ProjectDetail({ params }: Params) {
               </CardContent>
            </Card>
         </TabsContent>
-
-        {/* UI Specs Content */}
-        <TabsContent value="ui-specs">
-           <Card>
-              <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                <div>
-                   <CardTitle className="text-lg">UI Specifications</CardTitle>
-                   <CardDescription>Design system and wireframes</CardDescription>
-                </div>
-                <Link href={`/projects/${project.id}/ui-specs`}>
-                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit UI Specs</Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                 <div className="space-y-8">
-                    {project.ui_specs?.wireframes_md && (
-                       <div>
-                          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Wireframes</h4>
-                          <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                             <Markdown>{project.ui_specs.wireframes_md}</Markdown>
-                          </div>
-                       </div>
-                    )}
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       {project.ui_specs?.design_system && (
-                          <div>
-                             <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Design System Tokens</h4>
-                             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
-                                {JSON.stringify(project.ui_specs.design_system, null, 2)}
-                             </pre>
-                          </div>
-                       )}
-                       {project.ui_specs?.components && (
-                          <div>
-                             <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Components</h4>
-                             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
-                                {JSON.stringify(project.ui_specs.components, null, 2)}
-                             </pre>
-                          </div>
-                       )}
-                    </div>
-
-                    {!project.ui_specs && (
-                       <div className="text-center py-12 text-gray-400 italic">No UI specifications defined yet.</div>
-                    )}
+         {/* UI Specs Content */}
+         <TabsContent value="ui-specs">
+            <Card>
+               <CardHeader className="flex flex-row items-center justify-between border-b border-gray-100 pb-4 mb-6">
+                 <div>
+                    <CardTitle className="text-lg">UI Specifications</CardTitle>
+                    <CardDescription>Design system and visual identity</CardDescription>
                  </div>
-              </CardContent>
-           </Card>
-        </TabsContent>
+                 <Link href={`/projects/${id}/ui-specs`}>
+                    <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit UI Specs</Button>
+                 </Link>
+               </CardHeader>
+               <CardContent>
+                  <div className="space-y-8">
+                     {project.ui_specs?.wireframes_md && (
+                        <div>
+                           <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Wireframes</h4>
+                           <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
+                              <Markdown>{project.ui_specs.wireframes_md}</Markdown>
+                           </div>
+                        </div>
+                     )}
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {project.ui_specs?.design_system && (
+                           <div>
+                              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Design System Tokens</h4>
+                              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                 {JSON.stringify(project.ui_specs.design_system, null, 2)}
+                              </pre>
+                           </div>
+                        )}
+                        {project.ui_specs?.components && (
+                           <div>
+                              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Components</h4>
+                              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                 {JSON.stringify(project.ui_specs.components, null, 2)}
+                              </pre>
+                           </div>
+                        )}
+                     </div>
 
-        {/* UI Artifacts Content */}
-        <TabsContent value="artifacts">
-           <UIArtifactsGrid artifacts={project.project_artifacts} />
-        </TabsContent>
+                     {!project.ui_specs && (
+                        <div className="text-center py-12 text-gray-400 italic">No UI specifications defined yet.</div>
+                     )}
+                  </div>
+               </CardContent>
+            </Card>
+         </TabsContent>
+         {/* Agents Content */}
+         <TabsContent value="agents">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {agents.length > 0 ? (
+                  agents.map((agent: any) => (
+                    <Card key={agent.id} className="relative overflow-hidden group hover:shadow-lg transition-apple border-gray-100">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                              {agent.role === 'DEVELOPER' || agent.role === 'ARCHITECT' ? <FileCode className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+                            </div>
+                            <div>
+                              <CardTitle className="text-base font-semibold">{agent.name}</CardTitle>
+                              <CardDescription className="text-xs uppercase tracking-wider font-bold text-blue-500">{agent.role}</CardDescription>
+                            </div>
+                          </div>
+                          <Badge variant={agent.is_active ? 'success' : 'default'} className="h-5">
+                            {agent.is_active ? 'Active' : 'Offline'}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="text-sm text-gray-600 line-clamp-3 italic min-h-[60px]">
+                          "{agent.system_prompt.substring(0, 150)}..."
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Model</span>
+                            <div className="text-sm font-medium text-gray-900 truncate">{agent.model}</div>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Avg CPU</span>
+                            <div className="text-sm font-medium text-gray-900">
+                              {agent.agent_metrics?.[0]?.cpu_usage ? `${agent.agent_metrics[0].cpu_usage.toFixed(1)}%` : 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+               ) : (
+                  <div className="col-span-full bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                       <Users className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">No Agents Found</h3>
+                    <p className="text-gray-500 max-w-xs mx-auto text-sm">No agents have been involved in this project yet. Start a task to assign an agent.</p>
+                  </div>
+               )}
+            </div>
+         </TabsContent>
       </Tabs>
     </div>
   )
