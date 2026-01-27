@@ -1,20 +1,25 @@
-import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { TasksTable } from '@/components/tasks/TasksTable'
-import { StoriesTable } from '@/components/stories/StoriesTable'
-import { UIArtifactsGrid } from '@/components/artifacts/UIArtifactsGrid'
-import { Markdown } from '@/components/ui/Markdown'
-import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/Card'
+import { Badge } from '@/shared/components/ui/Badge'
+import { TasksTable } from '@/shared/components/TasksTable'
+import { StoriesTable } from '@/shared/components/StoriesTable'
+import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid'
+import { Markdown } from '@/shared/components/ui/Markdown'
+import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed'
 import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
-import { AgentsTable } from '@/components/agents/AgentsTable'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { AgentsTable } from '@/shared/components/AgentsTable'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { formatCompactNumber } from '@/lib/utils'
-import { AgentFlow } from '@/components/agents/AgentFlow'
+import { AgentFlow } from '@/shared/components/AgentFlow'
+import { getProjectById } from '@/lib/dal/projects.dal'
+import { getTasksByProjectId, countTasksByProjectId, countCompletedTasksByProjectId } from '@/lib/dal/tasks.dal'
+import { getStoriesByProjectId } from '@/lib/dal/user_stories.dal'
+import { getLogsByProjectId } from '@/lib/dal/execution_logs.dal'
+import { getAgentsByProjectId, getCollaborationsByProjectId } from '@/lib/dal/agents.dal'
+import { use } from 'react'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -47,81 +52,17 @@ function mapLogToActivity(log: any): ActivityItemProps {
 }
 
 export default async function ProjectDetail({ params }: Params) {
-  const { id } = await params
+  const { id } = use(params)
   
   const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount, collaborations] = await Promise.all([
-    prisma.projects.findUnique({ 
-      where: { id },
-      include: {
-        architecture_specs: true,
-        project_briefs: true,
-        ui_specs: true,
-        project_artifacts: {
-          orderBy: { created_at: 'desc' }
-        }
-      }
-    }),
-    prisma.tasks.findMany({ 
-      where: { project_id: id }, 
-      orderBy: { created_at: 'desc' } 
-    }),
-    prisma.user_stories.findMany({ 
-      where: { project_id: id }, 
-      orderBy: { created_at: 'desc' } 
-    }),
-    prisma.execution_logs.findMany({
-      where: { project_id: id },
-      orderBy: { created_at: 'desc' },
-      take: 20,
-      include: {
-        agents: true,
-        tools: true
-      }
-    }),
-    prisma.agents.findMany({
-      where: {
-        OR: [
-          {
-            execution_logs: {
-              some: {
-                project_id: id
-              }
-            }
-          },
-          {
-            collaborations_sent: {
-              some: {
-                project_id: id
-              }
-            }
-          },
-          {
-            collaborations_received: {
-              some: {
-                project_id: id
-              }
-            }
-          }
-        ]
-      },
-      include: {
-        agent_metrics: {
-          orderBy: { created_at: 'desc' },
-          take: 1
-        },
-        agent_jobs: true
-      }
-    }),
-    prisma.tasks.count({ where: { project_id: id } }),
-    prisma.tasks.count({ where: { project_id: id, status: 'DONE' } }),
-    prisma.agent_collaborations.findMany({
-      where: { project_id: id },
-      include: {
-        from_agent: true,
-        to_agent: true
-      },
-      orderBy: { created_at: 'asc' }
-    })
+    getProjectById(id),
+    getTasksByProjectId(id),
+    getStoriesByProjectId(id),
+    getLogsByProjectId(id),
+    getAgentsByProjectId(id),
+    countTasksByProjectId(id),
+    countCompletedTasksByProjectId(id),
+    getCollaborationsByProjectId(id),
   ]) as any[]
 
   if (!project) return <div className="p-8">Project not found</div>

@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/Input'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
-import { Markdown } from '@/components/ui/Markdown'
-import { Card, CardContent } from '@/components/ui/Card'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { Input, Textarea } from '@/shared/components/ui/Input'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs'
+import { Markdown } from '@/shared/components/ui/Markdown'
+import { Card, CardContent } from '@/shared/components/ui/Card'
 import { Save, Eye, Edit2, Loader2, RefreshCw } from 'lucide-react'
-import { Skeleton } from '@/components/ui/Skeleton'
+import { Skeleton } from '@/shared/components/ui/Skeleton'
 import { use } from 'react'
 
 export default function ProjectBriefPage({ params }: { params: Promise<{ id: string }> }) {

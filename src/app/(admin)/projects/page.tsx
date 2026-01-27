@@ -1,15 +1,13 @@
-import { prisma } from '@/lib/db'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { ProjectsTable } from '@/components/projects/ProjectsTable'
+import { getProjects } from '@/lib/dal/projects.dal'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { ProjectsTable } from './_components/ProjectsTable'
 import Link from 'next/link'
 import { Plus, Briefcase, Clock, CheckCircle } from 'lucide-react'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 
 export default async function ProjectsPage() {
-  const projects = await prisma.projects.findMany({ 
-    orderBy: { created_at: 'desc' }
-  })
+  const projects = await getProjects()
 
   // Calculate metrics
   const totalProjects = projects.length
