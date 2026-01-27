@@ -14,6 +14,7 @@ import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, 
 import { AgentsTable } from '@/components/agents/AgentsTable'
 import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
 import { formatCompactNumber } from '@/lib/utils'
+import { AgentFlow } from '@/components/agents/AgentFlow'
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -48,7 +49,7 @@ function mapLogToActivity(log: any): ActivityItemProps {
 export default async function ProjectDetail({ params }: Params) {
   const { id } = await params
   
-  const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount] = await Promise.all([
+  const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount, collaborations] = await Promise.all([
     prisma.projects.findUnique({ 
       where: { id },
       include: {
@@ -79,11 +80,29 @@ export default async function ProjectDetail({ params }: Params) {
     }),
     prisma.agents.findMany({
       where: {
-        execution_logs: {
-          some: {
-            project_id: id
+        OR: [
+          {
+            execution_logs: {
+              some: {
+                project_id: id
+              }
+            }
+          },
+          {
+            collaborations_sent: {
+              some: {
+                project_id: id
+              }
+            }
+          },
+          {
+            collaborations_received: {
+              some: {
+                project_id: id
+              }
+            }
           }
-        }
+        ]
       },
       include: {
         agent_metrics: {
@@ -94,7 +113,15 @@ export default async function ProjectDetail({ params }: Params) {
       }
     }),
     prisma.tasks.count({ where: { project_id: id } }),
-    prisma.tasks.count({ where: { project_id: id, status: 'DONE' } })
+    prisma.tasks.count({ where: { project_id: id, status: 'DONE' } }),
+    prisma.agent_collaborations.findMany({
+      where: { project_id: id },
+      include: {
+        from_agent: true,
+        to_agent: true
+      },
+      orderBy: { created_at: 'asc' }
+    })
   ]) as any[]
 
   if (!project) return <div className="p-8">Project not found</div>
@@ -241,6 +268,10 @@ export default async function ProjectDetail({ params }: Params) {
           <TabsTrigger value="agents" className="flex items-center gap-2">
              <Users className="w-4 h-4 opacity-70" />
              Agents
+          </TabsTrigger>
+          <TabsTrigger value="flow" className="flex items-center gap-2">
+             <GitBranch className="w-4 h-4 opacity-70" />
+             Agent Flow
           </TabsTrigger>
         </TabsList>
 
@@ -466,7 +497,22 @@ export default async function ProjectDetail({ params }: Params) {
                </div>
             )}
          </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
+          {/* Flow Content */}
+          <TabsContent value="flow">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                   <Activity className="w-5 h-5 text-blue-500" />
+                   Agent Communication Flow
+                </CardTitle>
+                <CardDescription>Visual representation of how agents are collaborating on this project.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AgentFlow collaborations={collaborations} agents={agents} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    )
+  }
