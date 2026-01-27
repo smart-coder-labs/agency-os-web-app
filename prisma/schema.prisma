@@ -34,17 +34,19 @@ model agent_tools {
 }
 
 model agents {
-  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name           String           @unique @db.VarChar(100)
-  role           String           @db.VarChar(50)
-  model          String           @db.VarChar(100)
-  system_prompt  String
-  is_active      Boolean?         @default(true)
-  agent_skills   agent_skills[]
-  agent_tools    agent_tools[]
-  execution_logs execution_logs[]
-  agent_jobs     agent_jobs[]
-  agent_metrics  agent_metrics[]
+  id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String                 @unique @db.VarChar(100)
+  role                    String                 @db.VarChar(50)
+  model                   String                 @db.VarChar(100)
+  system_prompt           String
+  is_active               Boolean?               @default(true)
+  agent_skills            agent_skills[]
+  agent_tools             agent_tools[]
+  execution_logs          execution_logs[]
+  agent_jobs              agent_jobs[]
+  agent_metrics           agent_metrics[]
+  collaborations_sent     agent_collaborations[] @relation("collaborations_sent")
+  collaborations_received agent_collaborations[] @relation("collaborations_received")
 }
 
 model agent_jobs {
@@ -111,24 +113,25 @@ model project_briefs {
 }
 
 model projects {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name               String              @db.VarChar(255)
-  description        String?
-  status             String?             @default("DISCOVERY") @db.VarChar(50)
-  repo_path          String?             @db.VarChar(255)
-  github_path        String?             @db.VarChar(255)
-  context_data       Json?               @default("{}")
-  created_at         DateTime?           @default(now()) @db.Timestamptz(6)
-  updated_at         DateTime?           @default(now()) @db.Timestamptz(6)
-  stitch_project_id  String?
-  architecture_specs architecture_specs?
-  project_briefs     project_briefs?
-  tasks              tasks[]
-  ui_specs           ui_specs?
-  user_stories       user_stories[]
-  execution_logs     execution_logs[]
-  project_artifacts  project_artifacts[]
-  stitch_queue       stitch_queue[]
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String                 @db.VarChar(255)
+  description          String?
+  status               String?                @default("DISCOVERY") @db.VarChar(50)
+  repo_path            String?                @db.VarChar(255)
+  github_path          String?                @db.VarChar(255)
+  context_data         Json?                  @default("{}")
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  stitch_project_id    String?
+  architecture_specs   architecture_specs?
+  project_briefs       project_briefs?
+  tasks                tasks[]
+  ui_specs             ui_specs?
+  user_stories         user_stories[]
+  execution_logs       execution_logs[]
+  project_artifacts    project_artifacts[]
+  stitch_queue         stitch_queue[]
+  agent_collaborations agent_collaborations[]
 }
 
 model skills {
@@ -232,4 +235,19 @@ model stitch_queue {
   created_at  DateTime? @default(now()) @db.Timestamptz(6)
   updated_at  DateTime? @default(now()) @updatedAt @db.Timestamptz(6)
   projects    projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model agent_collaborations {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  project_id    String    @db.Uuid
+  from_agent_id String?   @db.Uuid
+  to_agent_id   String?   @db.Uuid
+  task_id       String?   @db.Uuid
+  content       String?
+  type          String?   @db.VarChar(50)
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  metadata      Json?     @default("{}")
+  projects      projects  @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  from_agent    agents?   @relation("collaborations_sent", fields: [from_agent_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  to_agent      agents?   @relation("collaborations_received", fields: [to_agent_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 }
