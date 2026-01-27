@@ -1,30 +1,21 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/db'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { TasksTable } from '@/components/tasks/TasksTable'
-import { Plus, ListChecks, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { getTasks } from '@/lib/dal/tasks.dal';
+import { SectionHeader } from '@/shared/components/ui/SectionHeader';
+import { Button } from '@/shared/components/ui/Button';
+import { TasksTable } from '@/shared/components/TasksTable';
+import { Plus, ListChecks, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay';
 
-function mapPriority(p: number): string {
-  if (p >= 4) return 'URGENT'
-  if (p === 3) return 'HIGH'
-  if (p === 2) return 'MEDIUM'
-  return 'LOW'
+function mapPriority(p: number | null): string {
+  if (p === null || p === undefined) return 'LOW';
+  if (p >= 4) return 'URGENT';
+  if (p === 3) return 'HIGH';
+  if (p === 2) return 'MEDIUM';
+  return 'LOW';
 }
 
 export default async function TasksPage() {
-  const rows = await prisma.tasks.findMany({ 
-    orderBy: { created_at: 'desc' },
-    include: {
-      projects: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    }
-  })
+  const rows = await getTasks();
 
   // Map data to match TasksTable expected format
   const formattedTasks = rows.map((task: any) => ({
@@ -36,7 +27,7 @@ export default async function TasksPage() {
   // Calculate metrics
   const totalTasks = rows.length
   const pendingTasks = rows.filter(t => t.status === 'TODO' || t.status === 'IN_PROGRESS').length
-  const highPriorityTasks = rows.filter(t => t.priority >= 3).length
+  const highPriorityTasks = rows.filter(t => (t.priority || 0) >= 3).length
 
   const metrics = [
     {

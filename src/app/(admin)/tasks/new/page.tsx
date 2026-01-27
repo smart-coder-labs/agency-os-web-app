@@ -2,12 +2,12 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { Input, Textarea } from '@/components/ui/Input'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Modal, ModalContent, ModalHeader, ModalTitle, ModalDescription, ModalCloseButton } from '@/components/ui/Modal'
-import { Combobox } from '@/components/ui/Combobox'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { Input, Textarea } from '@/shared/components/ui/Input'
+import { Card, CardContent } from '@/shared/components/ui/Card'
+import { Modal, ModalContent, ModalHeader, ModalTitle, ModalDescription, ModalCloseButton } from '@/shared/components/ui/Modal'
+import { Combobox } from '@/shared/components/ui/Combobox'
 import { ArrowLeft, Save, CheckCircle2, Plus, List } from 'lucide-react'
 import Link from 'next/link'
 

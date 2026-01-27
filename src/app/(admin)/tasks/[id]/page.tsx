@@ -1,87 +1,69 @@
-import { prisma } from '@/lib/db'
-import Link from 'next/link'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
-import { Markdown } from '@/components/ui/Markdown'
-import { ActivityFeed, ActivityItemProps, ActivityType } from '@/components/ui/ActivityFeed'
-import { ArrowLeft, Edit, Clock, GitCommit, PlayCircle, FileJson, Terminal, Activity, Layers, LayoutDashboard } from 'lucide-react'
-import { UIArtifactsGrid } from '@/components/artifacts/UIArtifactsGrid'
+import Link from 'next/link';
+import { getTaskById } from '@/lib/dal/tasks.dal';
+import { SectionHeader } from '@/shared/components/ui/SectionHeader';
+import { Button } from '@/shared/components/ui/Button';
+import { Badge } from '@/shared/components/ui/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/Card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs';
+import { Markdown } from '@/shared/components/ui/Markdown';
+import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed';
+import { ArrowLeft, Edit, Clock, GitCommit, FileJson, Activity, Layers, LayoutDashboard } from 'lucide-react';
+import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid';
+import { use } from 'react';
 
-function mapPriority(p: number): string {
-  if (p >= 4) return 'URGENT'
-  if (p === 3) return 'HIGH'
-  if (p === 2) return 'MEDIUM'
-  return 'LOW'
+function mapPriority(p: number | null): string {
+  if (p === null || p === undefined) return 'LOW';
+  if (p >= 4) return 'URGENT';
+  if (p === 3) return 'HIGH';
+  if (p === 2) return 'MEDIUM';
+  return 'LOW';
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string | null }) {
   const map: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
     TODO: 'default',
     IN_PROGRESS: 'primary',
     REVIEW: 'info',
     DONE: 'success',
     BLOCKED: 'error',
-  }
-  return <Badge variant={map[status] || 'default'}>{status}</Badge>
+  };
+  return <Badge variant={map[status || 'TODO'] || 'default'}>{status || 'TODO'}</Badge>;
 }
 
-// Reuse log mapping logic or import it if I had put it in a utility. For now duplicate inline for speed.
 function mapLogToActivity(log: any): ActivityItemProps {
-  const actorName = log.agents ? log.agents.name : (log.tools ? `Tool: ${log.tools.name}` : 'System')
-  const actorInitials = actorName.slice(0, 2).toUpperCase()
+  const actorName = log.agents ? log.agents.name : (log.tools ? `Tool: ${log.tools.name}` : 'System');
+  const actorInitials = actorName.slice(0, 2).toUpperCase();
   
-  let type: ActivityType = 'default'
-  if (log.log_type === 'ERROR') type = 'alert'
-  if (log.log_type === 'SUCCESS') type = 'success'
-  if (log.tools) type = 'commit' 
+  let type: ActivityType = 'default';
+  if (log.log_type === 'ERROR') type = 'alert';
+  if (log.log_type === 'SUCCESS') type = 'success';
+  if (log.tools) type = 'commit';
 
   return {
-    actor: {
-      name: actorName,
-      initials: actorInitials
-    },
+    actor: { name: actorName, initials: actorInitials },
     action: <span>{log.title || 'performed an action'}</span>,
     date: new Date(log.created_at).toLocaleString(),
     type: type,
     children: log.detail ? <Markdown className="text-sm">{log.detail}</Markdown> : null
-  }
+  };
 }
 
 export default async function TaskDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+  const { id } = use(params);
   
-  const task = await prisma.tasks.findUnique({
-    where: { id },
-    include: {
-        projects: {
-            select: { name: true, id: true }
-        },
-        execution_logs: {
-            orderBy: { created_at: 'desc' },
-            include: {
-                agents: true,
-                tools: true
-            }
-        }
-    }
-  }) as any
+  const task = await getTaskById(id);
 
-  if (!task) return <div className="p-8">Task not found</div>
+  if (!task) return <div className="p-8">Task not found</div>;
 
-  const priorityLabel = mapPriority(task.priority)
-  const activityItems = task.execution_logs ? task.execution_logs.map(mapLogToActivity) : []
+  const priorityLabel = mapPriority(task.priority);
+  const activityItems = task.execution_logs ? task.execution_logs.map(mapLogToActivity) : [];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      {/* Back Link */}
       <Link href="/tasks" className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors">
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to Tasks
       </Link>
 
-      {/* Header */}
       <SectionHeader 
         title={
           <div className="flex flex-col gap-2">
@@ -109,7 +91,7 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
         }
       />
 
-      <Tabs defaultValue="overview" className="w-full">
+       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
             <TabsTrigger value="overview">
                 <LayoutDashboard className="w-4 h-4 opacity-70" />
@@ -134,7 +116,6 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
 
         <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Main Content */}
                 <Card className="md:col-span-2">
                     <CardHeader>
                         <CardTitle className="text-base">Description</CardTitle>
@@ -144,7 +125,6 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
                     </CardContent>
                 </Card>
 
-                {/* Sidebar Info */}
                 <div className="space-y-6">
                     <Card>
                         <CardHeader>
@@ -163,7 +143,7 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
                                 <span className="text-xs text-gray-400 block mb-1">Created At</span>
                                 <span className="text-sm text-gray-700 flex items-center gap-2">
                                     <Clock className="w-3 h-3" />
-                                    {new Date(task.created_at).toLocaleDateString()}
+                                    {task.created_at && new Date(task.created_at).toLocaleDateString()}
                                 </span>
                             </div>
                              {task.completed_at && (
@@ -210,7 +190,7 @@ export default async function TaskDetail({ params }: { params: Promise<{ id: str
                     device_type: a.device_type,
                     width: a.width,
                     height: a.height,
-                    created_at: a.created_at || task.created_at
+                    created_at: a.created_at || (task.created_at || new Date())
                 })).filter((a: any) => a.screenshot_url || a.html_url) : []} 
                 emptyMessage="No UI artifacts were generated by this task."
             />
