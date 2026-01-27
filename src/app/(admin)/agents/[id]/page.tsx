@@ -1,15 +1,17 @@
 
 import { prisma } from '@/lib/db'
 import { AgentDetailDashboard } from './AgentDetailDashboard'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+
+import { use } from 'react'
 
 interface Params { params: Promise<{ id: string }> }
 
 export default async function AgentDetailPage({ params }: Params) {
-    const { id } = await params
+    const { id } = use(params)
      
     // Fetch Agent + Metrics + Jobs + Logs
     const [agent, metrics, jobs, logs] = await Promise.all([

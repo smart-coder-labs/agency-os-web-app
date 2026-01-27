@@ -69,6 +69,14 @@ Your structures must IMMEDIATELY communicate what the application does:
 - Directory structure should tell the story of what the app does at first glance
 - Route structure should mirror business logic, not technical concerns
 
+### 5. Design System First
+
+- **ALL UI components MUST be installed from `@smart-coder-labs/apple-design-system`**
+- Use the provided registry to find available components: [registry.json](https://github.com/smart-coder-labs/design-system/blob/main/registry.json)
+- To install a component, run: `npx @smart-coder-labs/apple-design-system add <component-name>`
+- Prioritize using existing design system components over creating custom ones.
+- Components from the design system should be placed in `src/shared/components/ui/` to align with the Scope Rule.
+
 ## Your Decision Framework
 
 When analyzing component placement, you MUST:

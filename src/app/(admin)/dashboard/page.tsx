@@ -1,17 +1,19 @@
-import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { ActivityFeed } from '@/components/ui/ActivityFeed'
-import { Button } from '@/components/ui/Button'
-import { Users, Briefcase, ClipboardList, TrendingUp } from 'lucide-react'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/Card'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { ActivityFeed } from '@/shared/components/ui/ActivityFeed'
+import { Button } from '@/shared/components/ui/Button'
+import { Users, Briefcase, ClipboardList } from 'lucide-react'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
+import { getProjectsCount } from '@/lib/dal/projects.dal'
+import { getUsersCount } from '@/lib/dal/users.dal'
+import { getTasksCount } from '@/lib/dal/tasks.dal'
 
 async function getCounts() {
   const [userCount, projectCount, taskCount] = await Promise.all([
-    prisma.users.count(),
-    prisma.projects.count(),
-    prisma.tasks.count(),
+    getUsersCount(),
+    getProjectsCount(),
+    getTasksCount(),
   ])
   return { userCount, projectCount, taskCount }
 }

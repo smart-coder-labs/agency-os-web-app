@@ -1,14 +1,14 @@
 "use client"
 
 import { useState } from 'react'
-import { Card, CardContent } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/shared/components/ui/Card'
+import { Badge } from '@/shared/components/ui/Badge'
+import { Button } from '@/shared/components/ui/Button'
 import { Search, Filter, MoreVertical, Plus, Bot, Zap, Database, Activity } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
-import { AgentsTable } from '@/components/agents/AgentsTable'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
+import { AgentsTable } from '@/shared/components/AgentsTable'
 
 interface Agent {
     id: string

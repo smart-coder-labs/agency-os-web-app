@@ -1,6 +1,6 @@
 "use client"
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/shared/components/ui/Button'
+import { Input } from '@/shared/components/ui/Input'
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'

@@ -1,13 +1,11 @@
-import { prisma } from '@/lib/db'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { UsersTable } from '@/components/users/UsersTable'
+import { getUsers } from '@/lib/dal/users.dal'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { UsersTable } from './_components/UsersTable'
 import { UserPlus } from 'lucide-react'
 
 export default async function UsersPage() {
-  const users = await prisma.users.findMany({ 
-    orderBy: { created_at: 'desc' } 
-  })
+  const users = await getUsers()
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

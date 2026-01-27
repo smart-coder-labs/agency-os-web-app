@@ -18,17 +18,11 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
-    "paths": {
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/app/*": [
-        "./src/app/*"
-      ]
-    },
+      "paths": {
+        "@/*": ["./src/*"],
+        "@/shared/*": ["./src/shared/*"],
+        "@/lib/*": ["./src/lib/*"]
+      },
     "plugins": [
       {
         "name": "next"

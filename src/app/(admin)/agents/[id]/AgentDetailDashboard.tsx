@@ -1,14 +1,14 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/Card'
+import { Badge } from '@/shared/components/ui/Badge'
+import { Button } from '@/shared/components/ui/Button'
 import { Activity, Clock, CheckCircle2, AlertCircle, Play, StopCircle, RefreshCw, Cpu, Database } from 'lucide-react'
 import { useState, useMemo } from 'react'
-import { ResourceMonitor } from '@/components/ui/ResourceMonitor'
-import { ActivityLog, LogEntry } from '@/components/ui/ActivityLog'
+import { ResourceMonitor } from '@/shared/components/ui/ResourceMonitor'
+import { ActivityLog, LogEntry } from '@/shared/components/ui/ActivityLog'
 import { History } from 'lucide-react'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { cn } from '@/lib/utils'
 
 interface AgentDetailProps {

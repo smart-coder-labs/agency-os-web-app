@@ -1,6 +1,6 @@
-import Sidebar from '@/components/layout/Sidebar'
-import AdminHeader from '@/components/layout/AdminHeader'
-import { ScrollArea } from '@/components/ui/ScrollArea'
+import Sidebar from './_components/layout/Sidebar'
+import AdminHeader from './_components/layout/AdminHeader'
+import { ScrollArea } from '@/shared/components/ui/ScrollArea'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (

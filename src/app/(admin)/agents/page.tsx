@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { prisma } from '@/lib/db'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
 import { AgentsDashboard } from './AgentsDashboard'
 
 export default async function AgentsPage() {
