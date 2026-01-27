@@ -1,23 +1,13 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/db'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { StoriesTable } from '@/components/stories/StoriesTable'
+import { getStories } from '@/lib/dal/user_stories.dal'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { StoriesTable } from '@/shared/components/StoriesTable'
 import { Plus, BookOpen, MessageSquare, CheckSquare } from 'lucide-react'
-import { StatisticDisplay } from '@/components/ui/StatisticDisplay'
+import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 
 export default async function StoriesPage() {
-  const rows = await prisma.user_stories.findMany({ 
-    orderBy: { created_at: 'desc' },
-    include: {
-      projects: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    }
-  })
+  const rows = await getStories()
 
   // Map data to match StoriesTable expected format
   const formattedStories = rows.map((story: any) => ({

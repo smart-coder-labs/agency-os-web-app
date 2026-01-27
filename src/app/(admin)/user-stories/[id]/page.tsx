@@ -1,18 +1,13 @@
-import { prisma } from '@/lib/db'
 import Link from 'next/link'
-import { SectionHeader } from '@/components/ui/SectionHeader'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
+import { getStoryById } from '@/lib/dal/user_stories.dal'
+import { SectionHeader } from '@/shared/components/ui/SectionHeader'
+import { Button } from '@/shared/components/ui/Button'
+import { Badge } from '@/shared/components/ui/Badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/Card'
 import { ArrowLeft, Edit, CheckCircle2, User, Target, Lightbulb, ListChecks } from 'lucide-react'
+import { use } from 'react'
 
-function mapPriority(p: string | null): string {
-  if (!p) return 'LOW'
-  return p
-}
-
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: string | null }) {
   const map: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
     PENDING: 'default',
     APPROVED: 'primary',
@@ -20,20 +15,13 @@ function StatusBadge({ status }: { status: string }) {
     COMPLETED: 'success',
     REJECTED: 'error',
   }
-  return <Badge variant={map[status] || 'default'}>{status}</Badge>
+  return <Badge variant={map[status || 'PENDING'] || 'default'}>{status || 'PENDING'}</Badge>
 }
 
 export default async function StoryDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+  const { id } = use(params)
   
-  const story = await prisma.user_stories.findUnique({
-    where: { id },
-    include: {
-        projects: {
-            select: { name: true, id: true }
-        }
-    }
-  }) as any
+  const story = await getStoryById(id)
 
   if (!story) return <div className="p-8">User Story not found</div>
 
@@ -43,12 +31,10 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      {/* Back Link */}
       <Link href="/user-stories" className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors">
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to Stories
       </Link>
 
-      {/* Header */}
       <SectionHeader 
         title={
           <div className="flex flex-col gap-2">
@@ -74,9 +60,7 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Main Content */}
         <div className="md:col-span-2 space-y-6">
-            {/* The Story */}
             <Card className="bg-gradient-to-br from-white to-gray-50/50">
                 <CardHeader>
                     <CardTitle className="text-base text-gray-500 uppercase tracking-wider">The Story</CardTitle>
@@ -110,7 +94,6 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
                 </CardContent>
             </Card>
 
-            {/* Acceptance Criteria */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -121,7 +104,7 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
                 <CardContent>
                     {acceptanceCriteria.length > 0 ? (
                         <ul className="space-y-3">
-                            {acceptanceCriteria.map((criteria: string, idx: number) => (
+                            {acceptanceCriteria.map((criteria: any, idx: number) => (
                                 <li key={idx} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
                                     <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                                     <span className="text-gray-700">{criteria}</span>
@@ -135,7 +118,6 @@ export default async function StoryDetail({ params }: { params: Promise<{ id: st
             </Card>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6">
              <Card>
                 <CardHeader>
