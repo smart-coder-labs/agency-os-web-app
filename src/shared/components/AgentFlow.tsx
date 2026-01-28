@@ -5,6 +5,7 @@ import {
   ReactFlow,
   Background,
   Controls,
+  ControlButton,
   MiniMap,
   useNodesState,
   useEdgesState,
@@ -14,6 +15,7 @@ import {
   ConnectionLineType,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { Maximize, Minimize } from 'lucide-react'
 
 import { AgentNode } from './AgentNode'
 import { CollaborationNode } from './CollaborationNode'
@@ -34,7 +36,31 @@ interface AgentFlowProps {
 }
 
 export const AgentFlow = ({ collaborations = [], agents = [] }: AgentFlowProps) => {
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [collapsedAgents, setCollapsedAgents] = useState<Record<string, boolean>>({})
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`)
+      })
+    } else {
+      document.exitFullscreen()
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
 
   const toggleAgent = useCallback((agentId: string) => {
     setCollapsedAgents(prev => ({
@@ -170,7 +196,10 @@ export const AgentFlow = ({ collaborations = [], agents = [] }: AgentFlowProps) 
   }, [initialNodes, initialEdges, setNodes, setEdges])
 
   return (
-    <div className="w-full h-[800px] border border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-900 overflow-hidden relative shadow-2xl group">
+    <div 
+      ref={containerRef}
+      className={`w-full ${isFullscreen ? 'h-screen' : 'h-[800px]'} border border-slate-200 dark:border-slate-800 rounded-3xl bg-slate-900 overflow-hidden relative shadow-2xl group`}
+    >
       {/* Background Glows */}
       <div className="absolute top-0 -left-20 w-80 h-80 bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 -right-20 w-80 h-80 bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
@@ -200,7 +229,11 @@ export const AgentFlow = ({ collaborations = [], agents = [] }: AgentFlowProps) 
         colorMode="dark"
       >
         <Background color="#1e293b" variant={'lines' as any} gap={40} size={1} />
-        <Controls className="bg-slate-800 border-slate-700 fill-slate-300" />
+        <Controls className="bg-slate-800 border-slate-700 fill-slate-300">
+          <ControlButton onClick={toggleFullscreen} title="Toggle Fullscreen" className="bg-slate-800 border-slate-700 hover:bg-slate-700 transition-colors">
+            {isFullscreen ? <Minimize size={14} className="text-slate-300" /> : <Maximize size={14} className="text-slate-300" />}
+          </ControlButton>
+        </Controls>
         <MiniMap 
           nodeStrokeWidth={3}
           maskColor="rgba(0, 0, 0, 0.4)"

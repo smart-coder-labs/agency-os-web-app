@@ -41,3 +41,19 @@ export async function getCollaborationsByProjectId(projectId: string) {
     throw new Error('Failed to fetch collaborations for project.');
   }
 }
+
+export async function getAllAgents() {
+  try {
+    const agents = await prisma.agents.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        agent_skills: true
+      }
+    });
+    return agents;
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch agents.');
+  }
+}
+

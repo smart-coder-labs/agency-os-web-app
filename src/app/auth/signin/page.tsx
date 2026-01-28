@@ -87,11 +87,13 @@ export default function SignInPage() {
               placeholder="••••••••"
               autoComplete="current-password"
             />
-            <div className="flex justify-end">
+            {/**
+             * <div className="flex justify-end">
                <Link href="/auth/forgot-password" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
                  Forgot password?
                </Link>
             </div>
+             */}
           </div>
 
           <div className="pt-2">
@@ -114,12 +116,16 @@ export default function SignInPage() {
           )}
         </form>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
+        {
+          /**
+           * <div className="mt-8 text-center text-sm text-gray-600">
           Don't have an account?{' '}
           <Link href="/auth/signup" className="text-blue-600 font-medium hover:text-blue-700 hover:underline transition-all">
             Create account
           </Link>
         </div>
+           */
+        }
       </motion.div>
       
       <div className="absolute bottom-6 text-xs text-gray-400">

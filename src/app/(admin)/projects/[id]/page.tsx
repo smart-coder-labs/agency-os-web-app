@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { SectionHeader } from '@/shared/components/ui/SectionHeader'
 import { Button } from '@/shared/components/ui/Button'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/Card'
@@ -9,7 +8,7 @@ import { StoriesTable } from '@/shared/components/StoriesTable'
 import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid'
 import { Markdown } from '@/shared/components/ui/Markdown'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed'
-import { Edit, FileText, LayoutTemplate, Plus, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
+import { Edit, FileText, LayoutTemplate, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
 import { AgentsTable } from '@/shared/components/AgentsTable'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { formatCompactNumber } from '@/lib/utils'
@@ -19,6 +18,7 @@ import { getTasksByProjectId, countTasksByProjectId, countCompletedTasksByProjec
 import { getStoriesByProjectId } from '@/lib/dal/user_stories.dal'
 import { getLogsByProjectId } from '@/lib/dal/execution_logs.dal'
 import { getAgentsByProjectId, getCollaborationsByProjectId } from '@/lib/dal/agents.dal'
+import { ProjectDetailPageHeader } from './_components/ProjectDetailPageHeader'
 
 
 function mapPriority(p: number): string {
@@ -103,36 +103,7 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header */}
-      <SectionHeader 
-        title={
-          <div className="flex items-center gap-3">
-             {project.name}
-             <Badge variant={project.status === 'COMPLETED' ? 'success' : 'primary'} size="sm">
-               {project.status}
-             </Badge>
-          </div>
-        }
-        description={project.description || 'No description provided.'}
-        actions={
-          <div className="flex items-center gap-2">
-            <Link href={`/projects/${id}/edit`}>
-              <Button variant="secondary" leftIcon={<Edit className="w-4 h-4" />}>
-                Edit
-              </Button>
-            </Link>
-            <Link href={`/user-stories/new?projectId=${id}`}>
-              <Button variant="secondary" leftIcon={<BookOpen className="w-4 h-4" />}>
-                Add Story
-              </Button>
-            </Link>
-            <Link href={`/tasks/new?projectId=${id}`}>
-              <Button leftIcon={<Plus className="w-4 h-4" />}>
-                Add Task
-              </Button>
-            </Link>
-          </div>
-        }
-      />
+      <ProjectDetailPageHeader project={project} id={id} />
 
       {/* Analytics Section */}
       <StatisticDisplay 

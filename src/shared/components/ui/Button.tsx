@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import React from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
@@ -24,9 +24,8 @@ export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'size'> {
 
 const baseStyles = `
   inline-flex items-center justify-center gap-2
-  font-medium transition-apple
+  font-medium transition-apple cursor-pointer
   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2
-  cursor-pointer
   disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
   select-none
 `;

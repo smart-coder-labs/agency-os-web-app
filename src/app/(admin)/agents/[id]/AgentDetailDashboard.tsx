@@ -73,15 +73,15 @@ export function AgentDetailDashboard({ agent, metrics, jobs, logs }: AgentDetail
                      </p>
                 </div>
                 <div className="flex gap-2">
-                     <Button variant="secondary" leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}/>}>
+                     <Button variant="secondary" disabled leftIcon={<RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}/>}>
                         Refresh
                      </Button>
                      {agent.is_active ? (
-                        <Button variant="destructive" leftIcon={<StopCircle className="w-4 h-4"/>}>
+                        <Button disabled variant="destructive" leftIcon={<StopCircle className="w-4 h-4"/>}>
                             Terminate
                         </Button>
                      ) : (
-                        <Button variant="primary" leftIcon={<Play className="w-4 h-4"/>}>
+                        <Button disabled variant="primary" leftIcon={<Play className="w-4 h-4"/>}>
                             Start Agent
                         </Button>
                      )}

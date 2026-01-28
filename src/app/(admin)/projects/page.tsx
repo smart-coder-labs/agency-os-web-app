@@ -1,10 +1,8 @@
 import { getProjects } from '@/lib/dal/projects.dal'
-import { SectionHeader } from '@/shared/components/ui/SectionHeader'
-import { Button } from '@/shared/components/ui/Button'
 import { ProjectsTable } from './_components/ProjectsTable'
-import Link from 'next/link'
-import { Plus, Briefcase, Clock, CheckCircle } from 'lucide-react'
+import { Briefcase, Clock, CheckCircle } from 'lucide-react'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
+import { ProjectsPageHeader } from './_components/ProjectsPageHeader'
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
@@ -46,17 +44,7 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <SectionHeader 
-        title="Projects" 
-        description="Manage your ongoing projects and workflows."
-        actions={
-          <Link href="/projects/new">
-            <Button leftIcon={<Plus className="w-4 h-4" />}>
-              New Project
-            </Button>
-          </Link>
-        }
-      />
+      <ProjectsPageHeader />
       
       <StatisticDisplay 
         metrics={metrics}

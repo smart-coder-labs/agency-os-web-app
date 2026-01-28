@@ -12,11 +12,11 @@ export default async function UsersPage() {
       <SectionHeader 
         title="Users" 
         description="Manage team members and access permissions."
-        actions={
-          <Button leftIcon={<UserPlus className="w-4 h-4" />}>
-            Invite User
-          </Button>
-        }
+        // actions={
+        //   <Button leftIcon={<UserPlus className="w-4 h-4" />}>
+        //     Invite User
+        //   </Button>
+        // }
       />
       
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">

@@ -1,11 +1,16 @@
 "use client"
+import { Button } from '@/shared/components/ui/Button'
+/*
 import { useState } from 'react'
 import { Button } from '@/shared/components/ui/Button'
 import { Input } from '@/shared/components/ui/Input'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+*/
+import { MaintenanceMode } from '@/shared/components/ui/MaintenanceMode'
 
 export default function SignUpPage() {
+  /*
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -42,10 +47,21 @@ export default function SignUpPage() {
         setLoading(false)
     }
   }
+  */
 
   return (
+    <MaintenanceMode 
+      title="Registration is currently closed"
+      description="We're currently updating our invitation system. Signups will be available again shortly."
+      showContactSupport={false}
+      customAction={<Button variant="outline" onClick={() => window.location.href = '/auth/signin'}>Sign In</Button>}
+    />
+  )
+
+  /*
+  return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F5F5F7] p-4 relative overflow-hidden">
-      {/* Background Ambience */}
+      {/* Background Ambience }
       <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px]" />
 
@@ -125,4 +141,6 @@ export default function SignUpPage() {
       </div>
     </div>
   )
+  */
 }
+
