@@ -57,8 +57,8 @@ export async function createProject(
     return { message: 'Error de base de datos: No se pudo crear el proyecto.' }
   }
 
-  revalidatePath('/admin/projects')
-  redirect(`/admin/projects`)
+  revalidatePath('/projects')
+  redirect(`/projects`)
 }
 
 
@@ -83,9 +83,9 @@ export async function updateProject(
     return { message: 'Error de base de datos: No se pudo actualizar el proyecto.' };
   }
 
-  revalidatePath(`/admin/projects/${id}`);
-  revalidatePath('/admin/projects');
-  redirect(`/admin/projects/${id}`);
+  revalidatePath(`/projects/${id}`);
+  revalidatePath('/projects');
+  redirect(`/projects/${id}`);
 }
 
 
@@ -103,6 +103,6 @@ export async function deleteProject(formData: FormData) {
         throw new Error('Error de base de datos: No se pudo borrar el proyecto.');
     }
 
-    revalidatePath('/admin/projects');
-    redirect('/admin/projects');
+    revalidatePath('/projects');
+    redirect('/projects');
 }
