@@ -30,7 +30,7 @@ export async function getProjectById(id: string) {
   try {
     return await prisma.projects.findUnique({
       where: { id },
-      include: { tasks: true, user_stories: true, project_artifacts: true }
+      include: { tasks: true, user_stories: true, project_artifacts: true, ui_specs: true }
     });
   } catch (error) {
     console.error('Database Error:', error);

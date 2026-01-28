@@ -11,9 +11,9 @@ export async function saveUiSpecs(projectId: string, data: any) {
       wireframes_md: data.wireframes_md,
     })
     revalidatePath(`/projects/${projectId}/ui-specs`)
-    return { success: true, data: result }
+    return { success: true, message: "UI Specs saved successfully!" }
   } catch (error) {
     console.error("Failed to save UI Specs:", error)
-    return { success: false, error: "Failed to save UI Specs" }
+    return { success: false, message: "Failed to save UI Specs" }
   }
 }

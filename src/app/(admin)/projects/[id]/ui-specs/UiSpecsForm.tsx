@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { SectionHeader } from '@/shared/components/ui/SectionHeader'
 import { Button } from '@/shared/components/ui/Button'
 import { Textarea } from '@/shared/components/ui/Input'
@@ -13,33 +14,36 @@ import { saveUiSpecs } from '../../_actions/ui-specs-actions'
 
 export default function UiSpecsForm({ projectId, initialData }: { projectId: string, initialData: any }) {
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
   const [designSystem, setDesignSystem] = useState(JSON.stringify(initialData.design_system ?? {}, null, 2))
   const [components, setComponents] = useState(JSON.stringify(initialData.components ?? [], null, 2))
   const [wireframes, setWireframes] = useState(initialData.wireframes_md || '')
-  const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('write')
 
-  async function onSave() {
-    setSaving(true)
-    try {
-      const designSystemJson = JSON.parse(designSystem || '{}')
-      const componentsJson = JSON.parse(components || '[]')
+  function onSave() {
+    startTransition(async () => {
+      try {
+        const designSystemJson = JSON.parse(designSystem || '{}')
+        const componentsJson = JSON.parse(components || '[]')
 
-      const result = await saveUiSpecs(projectId, {
-        design_system: designSystemJson,
-        components: componentsJson,
-        wireframes_md: wireframes,
-      })
-      
-      if (!result.success) throw new Error(result.error)
-      
-      // Revalidates the page data on the client
-      router.refresh()
-    } catch (error) {
-      alert('Failed to save changes. Make sure JSON is valid.')
-    } finally {
-      setSaving(false)
-    }
+        const result = await saveUiSpecs(projectId, {
+          design_system: designSystemJson,
+          components: componentsJson,
+          wireframes_md: wireframes,
+        })
+        
+        if (result.success) {
+          toast.success(result.message)
+          router.push(`/projects/${projectId}`)
+        } else {
+          throw new Error(result.message)
+        }
+      } catch (error: any) {
+        toast.error('Failed to save changes', {
+          description: error.message || 'Make sure JSON is valid.',
+        })
+      }
+    })
   }
 
   return (
@@ -51,14 +55,16 @@ export default function UiSpecsForm({ projectId, initialData }: { projectId: str
             <div className="flex items-center gap-2">
                 <Button 
                     onClick={onSave} 
-                    disabled={saving}
-                    leftIcon={saving ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4" />}
+                    disabled={isPending}
+                    leftIcon={isPending ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4" />}
                 >
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {isPending ? 'Saving...' : 'Save Changes'}
                 </Button>
             </div>
         }
       />
+      
+      {/* ... el resto del JSX no cambia ... */}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-4">
@@ -147,6 +153,7 @@ export default function UiSpecsForm({ projectId, initialData }: { projectId: str
                             </pre>
                         </CardContent>
                     </Card>
+                </Card>
                 </div>
             </div>
         </TabsContent>
@@ -154,3 +161,5 @@ export default function UiSpecsForm({ projectId, initialData }: { projectId: str
     </div>
   )
 }
+
+
