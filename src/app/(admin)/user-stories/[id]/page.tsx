@@ -5,7 +5,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { Badge } from '@/shared/components/ui/Badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/Card'
 import { ArrowLeft, Edit, CheckCircle2, User, Target, Lightbulb, ListChecks } from 'lucide-react'
-import { use } from 'react'
+
 
 function StatusBadge({ status }: { status: string | null }) {
   const map: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
@@ -18,8 +18,12 @@ function StatusBadge({ status }: { status: string | null }) {
   return <Badge variant={map[status || 'PENDING'] || 'default'}>{status || 'PENDING'}</Badge>
 }
 
-export default async function StoryDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+interface StoryDetailProps {
+  params: { id: string };
+}
+
+export default async function StoryDetail({ params }: StoryDetailProps) {
+  const { id } = params
   
   const story = await getStoryById(id)
 

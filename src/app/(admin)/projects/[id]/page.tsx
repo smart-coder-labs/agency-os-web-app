@@ -19,9 +19,7 @@ import { getTasksByProjectId, countTasksByProjectId, countCompletedTasksByProjec
 import { getStoriesByProjectId } from '@/lib/dal/user_stories.dal'
 import { getLogsByProjectId } from '@/lib/dal/execution_logs.dal'
 import { getAgentsByProjectId, getCollaborationsByProjectId } from '@/lib/dal/agents.dal'
-import { use } from 'react'
 
-interface Params { params: Promise<{ id: string }> }
 
 function mapPriority(p: number): string {
   if (p >= 4) return 'URGENT'
@@ -51,8 +49,13 @@ function mapLogToActivity(log: any): ActivityItemProps {
   }
 }
 
-export default async function ProjectDetail({ params }: Params) {
-  const { id } = use(params)
+interface ProjectDetailPageProps {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
+}
+
+export default async function ProjectDetail({ params }: ProjectDetailPageProps) {
+  const { id } = params
   
   const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount, collaborations] = await Promise.all([
     getProjectById(id),

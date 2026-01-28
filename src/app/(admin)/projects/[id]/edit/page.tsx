@@ -1,8 +1,8 @@
 "use client"
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function EditProjectPage({ params }: { params: { id: string } }) {
+  const { id } = params
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [status, setStatus] = useState('DISCOVERY')

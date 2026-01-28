@@ -1,8 +1,8 @@
 "use client"
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState } from 'react'
 
-export default function EditStory({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function EditStory({ params }: { params: { id: string } }) {
+  const { id } = params
   const [title, setTitle] = useState('')
   const [role, setRole] = useState('')
   const [goal, setGoal] = useState('')

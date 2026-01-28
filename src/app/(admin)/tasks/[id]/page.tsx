@@ -9,7 +9,7 @@ import { Markdown } from '@/shared/components/ui/Markdown';
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed';
 import { ArrowLeft, Edit, Clock, GitCommit, FileJson, Activity, Layers, LayoutDashboard } from 'lucide-react';
 import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid';
-import { use } from 'react';
+
 
 function mapPriority(p: number | null): string {
   if (p === null || p === undefined) return 'LOW';
@@ -48,8 +48,12 @@ function mapLogToActivity(log: any): ActivityItemProps {
   };
 }
 
-export default async function TaskDetail({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+interface TaskDetailProps {
+  params: { id: string };
+}
+
+export default async function TaskDetail({ params }: TaskDetailProps) {
+  const { id } = params;
   
   const task = await getTaskById(id);
 
