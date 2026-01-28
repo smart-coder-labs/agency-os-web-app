@@ -153,13 +153,11 @@ export default function UiSpecsForm({ projectId, initialData }: { projectId: str
                             </pre>
                         </CardContent>
                     </Card>
-                </Card>
                 </div>
             </div>
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+)}
 
 
