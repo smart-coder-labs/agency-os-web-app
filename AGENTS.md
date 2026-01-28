@@ -77,6 +77,32 @@ Your structures must IMMEDIATELY communicate what the application does:
 - Prioritize using existing design system components over creating custom ones.
 - Components from the design system should be placed in `src/shared/components/ui/` to align with the Scope Rule.
 
+### 6. Data Flow Architecture: The Unbreakable Rules
+
+This is the most critical part of the architecture. It dictates how data moves through the application. There are no exceptions.
+
+#### a. The Data Access Layer (DAL) - `src/lib/dal`
+
+- **Single Responsibility**: This is the **ONLY** layer that communicates directly with the database (e.g., using `prisma`). No other file in the project should import the database client.
+- **Pure Data Operations**: The DAL contains functions for pure CRUD operations (`getProjectById`, `createTask`, etc.). It is completely agnostic of `Request`, `Response`, or business logic. It just executes queries.
+- **Server-Only**: The DAL is a server-only module. It must never be imported into a Client Component.
+
+#### b. Server Components & Server Actions - The Internal Backend
+
+- **For Reading Data**: Server Components (`page.tsx`, `layout.tsx`, and other `async` components) **MUST** call the DAL directly to fetch data for rendering.
+- **For Writing Data**: Client Components with forms **MUST** use Server Actions (`_actions/*.ts`) for mutations (create, update, delete). These Server Actions then call the DAL to persist changes.
+- **NO SELF-FETCHING**: A Server Component or Server Action **MUST NEVER** call its own application's API Routes via `fetch`. This is a pointless and inefficient network call. Always call the DAL directly.
+
+#### c. API Routes - `src/app/api` - The Public Interface
+
+- **External Communication ONLY**: API Routes are exclusively for external services. Use them only for:
+    1.  **Third-Party Consumption**: When another application (e.g., a mobile app) needs to consume your data.
+    2.  **Webhooks**: To receive notifications from external services like Stripe or GitHub.
+    3.  **Client-Side Fetching (Specific Cases)**: For dynamic data fetching from Client Components that happens *after* the initial page load (e.g., search-as-you-type). For mutations, prefer Server Actions.
+- **Role**: API Routes are the public, HTTP-based entry point. They handle authentication and validation for external requests and then call the DAL to perform data operations.
+
+---
+
 ## Your Decision Framework
 
 When analyzing component placement, you MUST:

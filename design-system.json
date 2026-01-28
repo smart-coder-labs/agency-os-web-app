@@ -1,4 +1,4 @@
 {
-  "componentsDir": "./src/components/ui",
+  "componentsDir": "./src/shared/components/ui",
   "globalCss": "./src/app/globals.css"
 }

@@ -6,9 +6,8 @@ interface UiSpecsPageProps {
 }
 
 export default async function UiSpecsPage({ params }: UiSpecsPageProps) {
-  // Corregimos el nombre del param id a project_id como espera el dal
-  const { id: project_id } = params
-  const uiSpec = await getUiSpecByProjectId(project_id)
+  const { id } = params
+  const uiSpec = await getUiSpecByProjectId(id)
 
   const initialData = {
     design_system: uiSpec?.design_system ?? {},
@@ -16,5 +15,5 @@ export default async function UiSpecsPage({ params }: UiSpecsPageProps) {
     wireframes_md: uiSpec?.wireframes_md ?? ''
   }
 
-  return <UiSpecsForm projectId={project_id} initialData={initialData} />
+  return <UiSpecsForm projectId={id} initialData={initialData} />
 }
