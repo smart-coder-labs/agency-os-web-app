@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ project_id: string }> }) {
   const { project_id } = await params
   const row = await prisma.architecture_specs.findUnique({ where: { project_id } })

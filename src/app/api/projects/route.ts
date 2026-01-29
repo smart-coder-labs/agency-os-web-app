@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getProjects } from '@/lib/dal/projects.dal'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const rows = await getProjects()
