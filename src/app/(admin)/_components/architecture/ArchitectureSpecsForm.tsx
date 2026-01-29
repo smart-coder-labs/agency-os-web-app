@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { SectionHeader } from '@/shared/components/ui/SectionHeader'
 import { Button } from '@/shared/components/ui/Button'
 import { Input, Textarea } from '@/shared/components/ui/Input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs'
@@ -20,17 +19,29 @@ interface Diagram {
 
 interface ArchitectureSpecsFormProps {
   projectId: string;
+  initialData?: any;
   onCancel?: () => void;
   onSuccess?: () => void;
 }
 
-export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: ArchitectureSpecsFormProps) {
+export function ArchitectureSpecsForm({ projectId, initialData, onCancel, onSuccess }: ArchitectureSpecsFormProps) {
   const router = useRouter()
-  const [content, setContent] = useState('')
-  const [diagrams, setDiagrams] = useState<Diagram[]>([])
-  const [stackDecisions, setStackDecisions] = useState('{}')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [loading, setLoading] = useState(!initialData)
+  
+  const [content, setContent] = useState(initialData?.content || '')
+  const [diagrams, setDiagrams] = useState<Diagram[]>(() => {
+    const raw = initialData?.diagrams ?? []
+    return raw.map((d: any) => {
+      if (typeof d === 'string') return { name: 'Untitled Diagram', code: d, type: 'mermaid' }
+      return { 
+        name: d.name || 'Untitled Diagram', 
+        code: d.code || d.content || '', 
+        type: d.type || 'mermaid' 
+      }
+    })
+  })
+  const [stackDecisions, setStackDecisions] = useState(JSON.stringify(initialData?.stack_decisions ?? {}, null, 2))
   const [activeTab, setActiveTab] = useState('write')
 
   const loadData = async () => {
@@ -62,8 +73,10 @@ export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: Archit
   }
 
   useEffect(() => {
-    loadData()
-  }, [projectId])
+    if (!initialData) {
+      loadData()
+    }
+  }, [projectId, initialData])
 
   const addDiagram = () => {
     setDiagrams([...diagrams, { name: '', code: '', type: 'mermaid' }])
@@ -80,35 +93,34 @@ export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: Archit
   }
 
   async function onSave() {
-    setSaving(true)
-    try {
-        let parsedStack = {}
-        try { parsedStack = JSON.parse(stackDecisions || '{}') } catch(e) { throw new Error('Invalid Stack Decisions JSON') }
+    startTransition(async () => {
+      try {
+          let parsedStack = {}
+          try { parsedStack = JSON.parse(stackDecisions || '{}') } catch(e) { throw new Error('Invalid Stack Decisions JSON') }
 
-        const res = await fetch(`/api/architecture-specs/${projectId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                content, 
-                diagrams, 
-                stack_decisions: parsedStack
-            })
-        })
-        if (!res.ok) throw new Error('Failed to save')
-        
-        toast.success("Architecture specs updated successfully")
-        
-        if (onSuccess) {
-          onSuccess()
-        } else {
-          router.push(`/projects/${projectId}`)
-          router.refresh()
-        }
-    } catch (error: any) {
-        toast.error(error.message || 'Failed to save changes')
-    } finally {
-        setSaving(false)
-    }
+          const res = await fetch(`/api/architecture-specs/${projectId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  content, 
+                  diagrams, 
+                  stack_decisions: parsedStack
+              })
+          })
+          if (!res.ok) throw new Error('Failed to save')
+          
+          toast.success("Architecture specs updated successfully")
+          
+          if (onSuccess) {
+            onSuccess()
+          } else {
+            router.push(`/projects/${projectId}`)
+            router.refresh()
+          }
+      } catch (error: any) {
+          toast.error(error.message || 'Failed to save changes')
+      }
+    })
   }
 
   return (
@@ -127,14 +139,14 @@ export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: Archit
 
             <div className="flex items-center gap-2">
                 {onCancel && (
-                    <Button variant="ghost" onClick={onCancel} disabled={saving} size="sm">
+                    <Button variant="ghost" onClick={onCancel} disabled={isPending || loading} size="sm">
                         Cancel
                     </Button>
                 )}
                 <Button 
                     variant="secondary" 
                     onClick={loadData} 
-                    disabled={loading || saving}
+                    disabled={isPending || loading}
                     size="sm"
                     leftIcon={<RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />}
                 >
@@ -142,11 +154,11 @@ export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: Archit
                 </Button>
                 <Button 
                     onClick={onSave} 
-                    disabled={loading || saving}
+                    disabled={isPending || loading}
                     size="sm"
-                    leftIcon={saving ? <Loader2 className="animate-spin w-3 h-3"/> : <Save className="w-3 h-3" />}
+                    leftIcon={isPending ? <Loader2 className="animate-spin w-3 h-3"/> : <Save className="w-3 h-3" />}
                 >
-                    {saving ? 'Saving...' : 'Save'}
+                    {isPending ? 'Saving...' : 'Save'}
                 </Button>
             </div>
       </div>

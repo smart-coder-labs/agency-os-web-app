@@ -3,7 +3,7 @@ import { ProjectForm } from '@/app/(admin)/projects/_components/ProjectForm'
 import { ModalWrapper } from '@/app/(admin)/_components/ModalWrapper'
 
 interface EditProjectModalProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditProjectModal({ params }: EditProjectModalProps) {

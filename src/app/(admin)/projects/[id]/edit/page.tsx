@@ -6,11 +6,11 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 interface EditProjectPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditProjectPage({ params }: EditProjectPageProps) {
-  const { id } = params
+  const { id } = await params
   const project = await getProjectById(id)
 
   if (!project) {

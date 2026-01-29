@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/Button'
 import { Input, Textarea } from '@/shared/components/ui/Input'
@@ -13,17 +13,19 @@ import { toast } from 'sonner'
 
 interface ProjectBriefFormProps {
   projectId: string;
+  initialData?: any;
   onCancel?: () => void;
   onSuccess?: () => void;
 }
 
-export function ProjectBriefForm({ projectId, onCancel, onSuccess }: ProjectBriefFormProps) {
+export function ProjectBriefForm({ projectId, initialData, onCancel, onSuccess }: ProjectBriefFormProps) {
   const router = useRouter()
-  const [content, setContent] = useState('')
-  const [goals, setGoals] = useState('[]')
-  const [targetAudience, setTargetAudience] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [loading, setLoading] = useState(!initialData)
+  
+  const [content, setContent] = useState(initialData?.content || '')
+  const [goals, setGoals] = useState(JSON.stringify(initialData?.goals ?? [], null, 2))
+  const [targetAudience, setTargetAudience] = useState(initialData?.target_audience || '')
   const [activeTab, setActiveTab] = useState('write')
 
   const loadData = async () => {
@@ -45,8 +47,10 @@ export function ProjectBriefForm({ projectId, onCancel, onSuccess }: ProjectBrie
   }
 
   useEffect(() => {
-    loadData()
-  }, [projectId])
+    if (!initialData) {
+      loadData()
+    }
+  }, [projectId, initialData])
 
   const getParsedGoals = () => {
     try {
@@ -58,32 +62,31 @@ export function ProjectBriefForm({ projectId, onCancel, onSuccess }: ProjectBrie
   }
 
   async function onSave() {
-    setSaving(true)
-    try {
-        const res = await fetch(`/api/project-briefs/${projectId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                content, 
-                goals: JSON.parse(goals || '[]'), 
-                target_audience: targetAudience 
-            })
-        })
-        if (!res.ok) throw new Error('Failed to save')
-        
-        toast.success("Brief updated successfully")
-        
-        if (onSuccess) {
-          onSuccess()
-        } else {
-          router.push(`/projects/${projectId}`)
-          router.refresh()
-        }
-    } catch (error) {
-        toast.error('Failed to save changes')
-    } finally {
-        setSaving(false)
-    }
+    startTransition(async () => {
+      try {
+          const res = await fetch(`/api/project-briefs/${projectId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  content, 
+                  goals: JSON.parse(goals || '[]'), 
+                  target_audience: targetAudience 
+              })
+          })
+          if (!res.ok) throw new Error('Failed to save')
+          
+          toast.success("Brief updated successfully")
+          
+          if (onSuccess) {
+            onSuccess()
+          } else {
+            router.push(`/projects/${projectId}`)
+            router.refresh()
+          }
+      } catch (error) {
+          toast.error('Failed to save changes')
+      }
+    })
   }
 
   return (
@@ -102,14 +105,14 @@ export function ProjectBriefForm({ projectId, onCancel, onSuccess }: ProjectBrie
 
             <div className="flex items-center gap-2">
                 {onCancel && (
-                    <Button variant="ghost" onClick={onCancel} disabled={saving}>
+                    <Button variant="ghost" onClick={onCancel} disabled={isPending || loading} size="sm">
                         Cancel
                     </Button>
                 )}
                 <Button 
                     variant="secondary" 
                     onClick={loadData} 
-                    disabled={loading || saving}
+                    disabled={isPending || loading}
                     size="sm"
                     leftIcon={<RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />}
                 >
@@ -117,11 +120,11 @@ export function ProjectBriefForm({ projectId, onCancel, onSuccess }: ProjectBrie
                 </Button>
                 <Button 
                     onClick={onSave} 
-                    disabled={loading || saving}
+                    disabled={isPending || loading}
                     size="sm"
-                    leftIcon={saving ? <Loader2 className="animate-spin w-3 h-3"/> : <Save className="w-3 h-3" />}
+                    leftIcon={isPending ? <Loader2 className="animate-spin w-3 h-3"/> : <Save className="w-3 h-3" />}
                 >
-                    {saving ? 'Saving...' : 'Save'}
+                    {isPending ? 'Saving...' : 'Save'}
                 </Button>
             </div>
       </div>

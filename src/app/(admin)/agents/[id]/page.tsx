@@ -9,11 +9,11 @@ import Link from 'next/link'
 
 
 interface AgentDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function AgentDetailPage({ params }: AgentDetailPageProps) {
-    const { id } = params
+    const { id } = await params
      
     // Fetch Agent + Metrics + Jobs + Logs
     const [agent, metrics, jobs, logs] = await Promise.all([

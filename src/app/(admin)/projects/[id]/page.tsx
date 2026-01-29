@@ -50,12 +50,11 @@ function mapLogToActivity(log: any): ActivityItemProps {
 }
 
 interface ProjectDetailPageProps {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
 }
 
 export default async function ProjectDetail({ params }: ProjectDetailPageProps) {
-  const { id } = params
+  const { id } = await params
   
   const [project, tasks, stories, logs, agents, tasksCount, completedTasksCount, collaborations] = await Promise.all([
     getProjectById(id),
@@ -351,7 +350,7 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                     <CardTitle className="text-lg">UI Specifications</CardTitle>
                     <CardDescription>Design system and visual identity</CardDescription>
                  </div>
-                 <Link href={`/projects/${id}/ui-specs`}>
+                 <Link href={`/ui-specs/${id}/edit`}>
                     <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit UI Specs</Button>
                  </Link>
                </CardHeader>

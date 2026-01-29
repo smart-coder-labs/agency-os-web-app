@@ -19,11 +19,11 @@ function StatusBadge({ status }: { status: string | null }) {
 }
 
 interface StoryDetailProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function StoryDetail({ params }: StoryDetailProps) {
-  const { id } = params
+  const { id } = await params
   
   const story = await getStoryById(id)
 

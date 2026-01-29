@@ -49,11 +49,11 @@ function mapLogToActivity(log: any): ActivityItemProps {
 }
 
 interface TaskDetailProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function TaskDetail({ params }: TaskDetailProps) {
-  const { id } = params;
+  const { id } = await params;
   
   const task = await getTaskById(id);
 

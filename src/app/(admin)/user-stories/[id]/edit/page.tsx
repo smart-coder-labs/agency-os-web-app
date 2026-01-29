@@ -2,11 +2,11 @@ import { getStoryById } from '@/lib/dal/user_stories.dal'
 import EditUserStoryForm from './EditUserStoryForm'
 
 interface EditUserStoryPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditUserStoryPage({ params }: EditUserStoryPageProps) {
-  const { id } = params
+  const { id } = await params
   const story = await getStoryById(id)
 
   if (!story) {

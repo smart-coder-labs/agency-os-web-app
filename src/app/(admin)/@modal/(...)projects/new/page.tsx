@@ -3,7 +3,7 @@ import { ModalWrapper } from '@/app/(admin)/_components/ModalWrapper'
 
 export default function CreateProjectModal() {
   return (
-    <ModalWrapper position='right' title="Create New Project">
+    <ModalWrapper position='right' size="xl" title="Create New Project">
       <ProjectForm />
     </ModalWrapper>
   )
