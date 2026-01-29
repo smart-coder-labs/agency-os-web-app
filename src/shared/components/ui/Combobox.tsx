@@ -141,6 +141,8 @@ export function Combobox({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
+    const listId = React.useId();
+
     return (
         <div className="relative w-full" ref={containerRef}>
             {name && <input type="hidden" name={name} value={value || ""} />}
@@ -148,6 +150,8 @@ export function Combobox({
                 ref={triggerRef}
                 role="combobox"
                 aria-expanded={open}
+                aria-controls={open ? listId : undefined}
+                aria-haspopup="listbox"
                 disabled={disabled}
                 className={cn(
                     "group flex h-10 w-full items-center justify-between rounded-lg border border-border-primary bg-surface-primary px-3 py-2 text-sm ring-offset-background placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm hover:bg-surface-secondary/50 transition-colors",
@@ -193,7 +197,9 @@ export function Combobox({
                             />
                         </div>
                         <div
+                            id={listId}
                             ref={listRef}
+                            role="listbox"
                             className="max-h-[200px] overflow-y-auto overflow-x-hidden py-1"
                             onMouseLeave={() => setHighlightedIndex(-1)}
                         >

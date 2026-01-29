@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
+import { useEffect, useState, useTransition, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/shared/components/ui/Button'
 import { Input, Textarea } from '@/shared/components/ui/Input'
@@ -44,7 +44,7 @@ export function ArchitectureSpecsForm({ projectId, initialData, onCancel, onSucc
   const [stackDecisions, setStackDecisions] = useState(JSON.stringify(initialData?.stack_decisions ?? {}, null, 2))
   const [activeTab, setActiveTab] = useState('write')
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       const r = await fetch(`/api/architecture-specs/${projectId}`)
@@ -70,13 +70,13 @@ export function ArchitectureSpecsForm({ projectId, initialData, onCancel, onSucc
     } finally {
        setLoading(false)
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     if (!initialData) {
       loadData()
     }
-  }, [projectId, initialData])
+  }, [initialData, loadData])
 
   const addDiagram = () => {
     setDiagrams([...diagrams, { name: '', code: '', type: 'mermaid' }])

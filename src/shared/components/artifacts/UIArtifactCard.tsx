@@ -38,10 +38,12 @@ export const UIArtifactCard: React.FC<UIArtifactCardProps> = ({ artifact }) => {
     <Card variant="glass" hoverable className="overflow-hidden flex flex-col h-full bg-white/50 backdrop-blur-sm border-white/20">
       <div className="relative aspect-video w-full bg-slate-100 group">
         {artifact.screenshot_url ? (
-          <img 
+          <Image 
             src={artifact.screenshot_url} 
             alt={artifact.title || 'UI Artifact'} 
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized={true}
           />
         ) : (
           <div className="flex items-center justify-center h-full bg-slate-200 text-slate-400">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { SectionHeader } from '@/shared/components/ui/SectionHeader'
@@ -30,7 +30,7 @@ export function UiSpecsForm({ projectId, initialData, onCancel, onSuccess }: UiS
   const [wireframes, setWireframes] = useState(initialData?.wireframes_md || '')
   const [activeTab, setActiveTab] = useState('write')
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       const r = await fetch(`/api/ui-specs/${projectId}`)
@@ -46,13 +46,13 @@ export function UiSpecsForm({ projectId, initialData, onCancel, onSuccess }: UiS
     } finally {
        setLoading(false)
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     if (!initialData) {
       loadData()
     }
-  }, [projectId, initialData])
+  }, [initialData, loadData])
 
   function onSave() {
     startTransition(async () => {
