@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
   title: 'Agency OS Admin',
   description: 'Admin panel for Agency OS',
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 }
 
 import { Toaster } from 'sonner'
