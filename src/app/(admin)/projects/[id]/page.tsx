@@ -69,6 +69,7 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
   ]) as any[]
 
   if (!project) return <div className="p-8">Project not found</div>
+  console.log("🚀 ~ ProjectDetail ~ project:", project)
 
   const totalTasks = tasksCount || 0
   const completedTasks = completedTasksCount || 0
@@ -264,7 +265,7 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                    <CardTitle className="text-lg">Project Brief</CardTitle>
                    <CardDescription>Goals and project strategy</CardDescription>
                 </div>
-                <Link href={`/projects/${project.id}/brief`}>
+                <Link href={`/brief/${project.id}/edit`}>
                    <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit Brief</Button>
                 </Link>
               </CardHeader>

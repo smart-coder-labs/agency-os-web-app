@@ -7,7 +7,7 @@ interface EditProjectModalProps {
 }
 
 export default async function EditProjectModal({ params }: EditProjectModalProps) {
-  const { id } = params
+  const { id } = await params
   const project = await getProjectById(id)
 
   if (!project) return null
