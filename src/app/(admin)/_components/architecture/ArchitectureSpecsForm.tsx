@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -9,8 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui
 import { Markdown } from '@/shared/components/ui/Markdown'
 import { Card, CardContent } from '@/shared/components/ui/Card'
 import { Save, Eye, Edit2, Loader2, RefreshCw, Cpu, Code2, Plus, Trash2, FileCode } from 'lucide-react'
-import { use } from 'react'
 import { Skeleton } from '@/shared/components/ui/Skeleton'
+import { toast } from 'sonner'
 
 interface Diagram {
   name: string;
@@ -18,8 +18,13 @@ interface Diagram {
   type: 'mermaid' | 'other';
 }
 
-export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: projectId } = use(params)
+interface ArchitectureSpecsFormProps {
+  projectId: string;
+  onCancel?: () => void;
+  onSuccess?: () => void;
+}
+
+export function ArchitectureSpecsForm({ projectId, onCancel, onSuccess }: ArchitectureSpecsFormProps) {
   const router = useRouter()
   const [content, setContent] = useState('')
   const [diagrams, setDiagrams] = useState<Diagram[]>([])
@@ -36,11 +41,9 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
         const b = await r.json()
         setContent(b.content || '')
         
-        // Handle migration from old formats to the required { name, code, type } format
         const rawDiagrams = b.diagrams ?? []
         const formattedDiagrams = rawDiagrams.map((d: any) => {
           if (typeof d === 'string') return { name: 'Untitled Diagram', code: d, type: 'mermaid' }
-          // Handle { name, content } -> { name, code, type }
           return { 
             name: d.name || 'Untitled Diagram', 
             code: d.code || d.content || '', 
@@ -48,11 +51,11 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
           }
         })
         setDiagrams(formattedDiagrams)
-        
         setStackDecisions(JSON.stringify(b.stack_decisions ?? {}, null, 2))
       }
     } catch (error) {
        console.error("Failed to load architecture specs", error)
+       toast.error("Failed to load architecture specs")
     } finally {
        setLoading(false)
     }
@@ -92,60 +95,71 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
             })
         })
         if (!res.ok) throw new Error('Failed to save')
-        router.push(`/projects/${projectId}`)
+        
+        toast.success("Architecture specs updated successfully")
+        
+        if (onSuccess) {
+          onSuccess()
+        } else {
+          router.push(`/projects/${projectId}`)
+          router.refresh()
+        }
     } catch (error: any) {
-        alert(error.message || 'Failed to save changes')
+        toast.error(error.message || 'Failed to save changes')
     } finally {
         setSaving(false)
     }
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      <SectionHeader 
-        title="Architecture Specifications" 
-        description="Design the system architecture, diagrams, and tech stack decisions."
-        actions={
+    <div className="space-y-6">
+      <div className="flex justify-between items-center bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-gray-100 sticky top-0 z-10 shadow-sm">
+           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                <TabsList className="bg-gray-100/50">
+                    <TabsTrigger value="write" className="flex items-center gap-2" disabled={loading}>
+                        <Edit2 className="w-4 h-4" /> Write
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="flex items-center gap-2" disabled={loading}>
+                        <Eye className="w-4 h-4" /> Preview
+                    </TabsTrigger>
+                </TabsList>
+            </Tabs>
+
             <div className="flex items-center gap-2">
+                {onCancel && (
+                    <Button variant="ghost" onClick={onCancel} disabled={saving} size="sm">
+                        Cancel
+                    </Button>
+                )}
                 <Button 
                     variant="secondary" 
                     onClick={loadData} 
                     disabled={loading || saving}
-                    leftIcon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+                    size="sm"
+                    leftIcon={<RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />}
                 >
                     Reset
                 </Button>
                 <Button 
                     onClick={onSave} 
                     disabled={loading || saving}
-                    leftIcon={saving ? <Loader2 className="animate-spin w-4 h-4"/> : <Save className="w-4 h-4" />}
+                    size="sm"
+                    leftIcon={saving ? <Loader2 className="animate-spin w-3 h-3"/> : <Save className="w-3 h-3" />}
                 >
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? 'Saving...' : 'Save'}
                 </Button>
             </div>
-        }
-      />
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between mb-4">
-            <TabsList>
-                <TabsTrigger value="write" className="flex items-center gap-2" disabled={loading}>
-                    <Edit2 className="w-4 h-4" /> Write
-                </TabsTrigger>
-                <TabsTrigger value="preview" className="flex items-center gap-2" disabled={loading}>
-                    <Eye className="w-4 h-4" /> Preview
-                </TabsTrigger>
-            </TabsList>
-        </div>
-
-        <TabsContent value="write" className="space-y-8">
+        <TabsContent value="write" className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
             <div className="grid grid-cols-1 gap-8">
                 {/* System Design Section */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                    <FileCode className="w-4 h-4" /> System Design (Markdown)
+                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <FileCode className="w-3 h-3 text-accent-blue" /> System Design (Markdown)
                   </h3>
-                  <Card>
+                  <Card className="border-border-primary/50 shadow-sm">
                       <CardContent className="pt-6">
                           {loading ? (
                             <Skeleton className="h-[500px] w-full" />
@@ -153,7 +167,7 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                             <Textarea 
                                 value={content} 
                                 onChange={(e) => setContent(e.target.value)} 
-                                className="font-mono text-sm min-h-[500px]"
+                                className="font-mono text-sm min-h-[500px] bg-gray-50/30 focus:bg-white transition-colors"
                                 placeholder="# System Overview..."
                             />
                           )}
@@ -164,10 +178,10 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                 {/* Diagrams Section */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                      <Cpu className="w-4 h-4" /> Architecture Diagrams
+                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      <Cpu className="w-3 h-3 text-purple-500" /> Architecture Diagrams
                     </h3>
-                    <Button variant="secondary" size="sm" onClick={addDiagram} disabled={loading} leftIcon={<Plus className="w-4 h-4" />}>
+                    <Button variant="secondary" size="sm" onClick={addDiagram} disabled={loading} leftIcon={<Plus className="w-3 h-3" />}>
                       Add Diagram
                     </Button>
                   </div>
@@ -175,7 +189,7 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                   <div className="grid grid-cols-1 gap-4">
                     {loading ? (
                       [1, 2].map(i => (
-                        <Card key={i}>
+                        <Card key={i} className="border-border-primary/50 shadow-sm">
                           <CardContent className="pt-6 space-y-4">
                             <Skeleton className="h-10 w-full" />
                             <Skeleton className="h-[150px] w-full" />
@@ -185,8 +199,8 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                     ) : (
                       <>
                         {diagrams.map((diag, idx) => (
-                          <Card key={idx} className="relative group overflow-hidden">
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Card key={idx} className="relative group overflow-hidden border-border-primary/50 shadow-sm">
+                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                               <Button variant="secondary" size="sm" className="h-8 w-8 p-0 text-red-500 border-red-100 hover:bg-red-50" onClick={() => removeDiagram(idx)}>
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -197,20 +211,21 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                                 value={diag.name} 
                                 onChange={(e) => updateDiagram(idx, 'name', e.target.value)}
                                 placeholder="e.g. System Overview, Database Schema..."
+                                className="bg-white"
                               />
                               <Textarea 
                                 label="Mermaid Code" 
                                 value={diag.code} 
                                 onChange={(e) => updateDiagram(idx, 'code', e.target.value)}
-                                className="font-mono text-sm min-h-[150px]"
+                                className="font-mono text-sm min-h-[150px] bg-gray-50/30 focus:bg-white transition-colors"
                                 placeholder="graph TD\n  A --> B"
                               />
                             </CardContent>
                           </Card>
                         ))}
                         {diagrams.length === 0 && (
-                          <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30 text-gray-400 text-sm">
-                            No diagrams added yet. Click "Add Diagram" to start.
+                          <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl bg-gray-50/30 text-gray-400 text-sm">
+                            No diagrams added yet. Click "Add Diagram" to start designing.
                           </div>
                         )}
                       </>
@@ -220,10 +235,10 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
 
                 {/* Stack Decisions Section */}
                 <div className="space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                      <Code2 className="w-4 h-4" /> Stack Decisions (JSON Object)
+                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                      <Code2 className="w-3 h-3 text-orange-500" /> Stack Decisions (JSON Object)
                     </h3>
-                    <Card>
+                    <Card className="border-border-primary/50 shadow-sm">
                         <CardContent className="pt-6">
                             {loading ? (
                               <Skeleton className="h-[200px] w-full" />
@@ -231,7 +246,7 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                               <Textarea 
                                   value={stackDecisions} 
                                   onChange={(e) => setStackDecisions(e.target.value)} 
-                                  className="font-mono text-sm min-h-[200px]"
+                                  className="font-mono text-sm min-h-[200px] bg-gray-50/30 focus:bg-white transition-colors"
                                   placeholder='{ "backend": "FastAPI" }'
                               />
                             )}
@@ -241,24 +256,28 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
             </div>
         </TabsContent>
 
-        <TabsContent value="preview">
-            <Card className="min-h-[500px]">
-                <CardContent className="pt-8 px-8 space-y-8">
+        <TabsContent value="preview" className="animate-in fade-in slide-in-from-bottom-2">
+            <Card className="min-h-[500px] border-border-primary/50 shadow-sm bg-white overflow-hidden">
+                <CardContent className="pt-8 px-8 space-y-10">
                     {content || diagrams.length > 0 ? (
                         <div className="space-y-10">
-                            {content && <Markdown>{content}</Markdown>}
+                            {content && (
+                              <div className="prose prose-slate max-w-none">
+                                <Markdown>{content}</Markdown>
+                              </div>
+                            )}
                             
                             {/* Diagrams Section */}
                             {diagrams.length > 0 && (
                                 <div className="pt-8 border-t border-gray-100">
-                                    <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                                        <Cpu className="w-5 h-5 text-blue-500" /> Architecture Diagrams
+                                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                        <Cpu className="w-4 h-4 text-accent-blue" /> Architecture Diagrams
                                     </h3>
-                                    <div className="space-y-8">
+                                    <div className="space-y-10">
                                         {diagrams.map((diag, i) => (
                                             <div key={i} className="space-y-4">
-                                                {diag.name && <h4 className="font-semibold text-gray-700">{diag.name}</h4>}
-                                                <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 overflow-hidden">
+                                                {diag.name && <h4 className="font-semibold text-gray-700 text-sm">{diag.name}</h4>}
+                                                <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 overflow-hidden shadow-inner">
                                                     <Markdown>{` \`\`\`mermaid\n${diag.code}\n\`\`\` `}</Markdown>
                                                 </div>
                                             </div>
@@ -274,13 +293,13 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                                     if (Object.keys(s).length > 0) {
                                         return (
                                             <div className="pt-8 border-t border-gray-100">
-                                                <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                                                    <Code2 className="w-5 h-5 text-purple-500" /> Tech Stack Decisions
+                                                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                                    <Code2 className="w-4 h-4 text-orange-500" /> Tech Stack Decisions
                                                 </h3>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                                     {Object.entries(s).map(([key, value]: [string, any]) => (
-                                                        <div key={key} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
-                                                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-none block mb-1">{key}</span>
+                                                        <div key={key} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                                                            <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-none block mb-2">{key}</span>
                                                             <span className="text-sm font-medium text-gray-900">{String(value)}</span>
                                                         </div>
                                                     ))}
@@ -293,8 +312,8 @@ export default function ArchitectureSpecsPage({ params }: { params: Promise<{ id
                             })()}
                         </div>
                     ) : (
-                        <div className="text-center py-12 text-gray-400">
-                            No content yet. Switch to "Write" tab to design the architecture.
+                        <div className="text-center py-20 text-gray-400 italic">
+                            No architecture design yet. Switch to "Write" tab to begin.
                         </div>
                     )}
                 </CardContent>
