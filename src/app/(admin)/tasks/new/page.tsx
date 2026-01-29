@@ -209,7 +209,7 @@ function NewTaskForm() {
                 </div>
                 <ModalTitle>Task Created Successfully!</ModalTitle>
                 <ModalDescription className="max-w-xs mx-auto">
-                    Task "{title}" has been added to the backlog.
+                    Task &quot;{title}&quot; has been added to the backlog.
                 </ModalDescription>
              </ModalHeader>
              

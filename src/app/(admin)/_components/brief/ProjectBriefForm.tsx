@@ -212,7 +212,7 @@ export function ProjectBriefForm({ projectId, initialData, onCancel, onSuccess }
                             <Markdown>{content}</Markdown>
                          ) : (
                             <div className="text-center py-12 text-gray-400 italic">
-                                No content yet. Switch to "Write" tab to add project details.
+                                No content yet. Switch to &quot;Write&quot; tab to add project details.
                             </div>
                          )}
                     </div>

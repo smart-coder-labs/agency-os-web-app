@@ -237,7 +237,7 @@ export function ArchitectureSpecsForm({ projectId, initialData, onCancel, onSucc
                         ))}
                         {diagrams.length === 0 && (
                           <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl bg-gray-50/30 text-gray-400 text-sm">
-                            No diagrams added yet. Click "Add Diagram" to start designing.
+                            No diagrams added yet. Click &quot;Add Diagram&quot; to start designing.
                           </div>
                         )}
                       </>
@@ -325,7 +325,7 @@ export function ArchitectureSpecsForm({ projectId, initialData, onCancel, onSucc
                         </div>
                     ) : (
                         <div className="text-center py-20 text-gray-400 italic">
-                            No architecture design yet. Switch to "Write" tab to begin.
+                            No architecture design yet. Switch to &quot;Write&quot; tab to begin.
                         </div>
                     )}
                 </CardContent>

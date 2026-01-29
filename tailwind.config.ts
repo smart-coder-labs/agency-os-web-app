@@ -1,6 +1,5 @@
 import type { Config } from 'tailwindcss'
 // Use Apple DS Tailwind preset
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import preset from '@smart-coder-labs/apple-design-system/tailwind.preset'
 

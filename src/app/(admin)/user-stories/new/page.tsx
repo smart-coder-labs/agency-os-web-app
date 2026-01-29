@@ -226,7 +226,7 @@ function NewStoryForm() {
                 </div>
                 <ModalTitle>Story Created!</ModalTitle>
                 <ModalDescription className="max-w-xs mx-auto">
-                    User story "{title}" has been saved.
+                    User story &quot;{title}&quot; has been saved.
                 </ModalDescription>
              </ModalHeader>
              

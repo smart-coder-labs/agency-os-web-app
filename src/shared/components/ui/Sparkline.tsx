@@ -27,6 +27,8 @@ export const Sparkline: React.FC<SparklineProps> = ({
     trend,
     className = '',
 }) => {
+    const gradientId = React.useId().replace(/:/g, '');
+
     if (!data || data.length === 0) {
         return null;
     }
@@ -42,11 +44,6 @@ export const Sparkline: React.FC<SparklineProps> = ({
             : 'rgb(0, 122, 255)'; // accent-blue
 
     const strokeColor = color || defaultColor;
-    const areaColorStart = fillColor || (calculatedTrend === 'up'
-        ? 'rgba(52, 199, 89, 0.2)'
-        : calculatedTrend === 'down'
-            ? 'rgba(255, 59, 48, 0.2)'
-            : 'rgba(0, 122, 255, 0.2)');
 
     // Calculate min and max values
     const min = Math.min(...data);
@@ -69,8 +66,6 @@ export const Sparkline: React.FC<SparklineProps> = ({
     const areaPath = showArea
         ? `${linePath} L ${width},${height} L 0,${height} Z`
         : '';
-
-    const gradientId = React.useId().replace(/:/g, '');
 
     return (
         <svg
