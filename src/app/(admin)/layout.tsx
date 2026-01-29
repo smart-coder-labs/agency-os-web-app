@@ -2,6 +2,8 @@ import Sidebar from './_components/layout/Sidebar'
 import AdminHeader from './_components/layout/AdminHeader'
 import { ScrollArea } from '@/shared/components/ui/ScrollArea'
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminLayout({ children, modal }: { children: React.ReactNode, modal: React.ReactNode }) {
   return (
     <div className="h-full w-full grid grid-cols-1 md:grid-cols-[260px_1fr] bg-[#F5F5F7]">
