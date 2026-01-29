@@ -20,6 +20,7 @@ export interface ComboboxProps {
     emptyMessage?: string;
     disabled?: boolean;
     className?: string;
+    name?: string;
 }
 
 export function Combobox({
@@ -31,6 +32,7 @@ export function Combobox({
     emptyMessage = "No item found.",
     disabled = false,
     className,
+    name,
 }: ComboboxProps) {
     const [open, setOpen] = React.useState(false);
     const [search, setSearch] = React.useState("");
@@ -141,6 +143,7 @@ export function Combobox({
 
     return (
         <div className="relative w-full" ref={containerRef}>
+            {name && <input type="hidden" name={name} value={value || ""} />}
             <button
                 ref={triggerRef}
                 role="combobox"
