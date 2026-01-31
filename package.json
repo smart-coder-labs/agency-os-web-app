@@ -30,13 +30,13 @@
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@smart-coder-labs/apple-design-system": "^1.0.17",
-    "prisma": "^7.3.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^20.11.30",
     "@types/pg": "^8.16.0",
@@ -46,6 +46,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8.5.6",
+    "prisma": "^7.3.0",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.6.3"
   }

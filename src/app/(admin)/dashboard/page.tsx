@@ -70,6 +70,8 @@ export default async function DashboardPage() {
   )
 }
 
+import { AIPlanningWorkflow } from '@/shared/components/AIPlanningWorkflow'
+
 function QuickLinks() {
   const items = [
     { href: '/projects/new', label: 'Create Project', desc: 'Start a new project workflow' },
@@ -84,6 +86,7 @@ function QuickLinks() {
       </CardHeader>
       <CardContent>
         <div className="grid gap-3">
+          <AIPlanningWorkflow />
           {items.map(i => (
             <Link key={i.href} href={i.href} className="block group">
               <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-100">
