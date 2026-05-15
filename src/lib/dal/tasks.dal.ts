@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { currentUser } from '@/lib/auth';
 
 // --- SCHEMAS ---
 const TaskSchema = z.object({
@@ -15,10 +16,18 @@ export type TaskFormData = z.infer<typeof TaskSchema>;
 
 // --- READ OPERATIONS ---
 export async function getTasks() {
+  const user = await currentUser();
+  if (!user) return [];
+
   try {
-    return await prisma.tasks.findMany({ 
+    return await prisma.tasks.findMany({
+      where: {
+        projects: {
+          user_id: user.id
+        }
+      },
       orderBy: { created_at: 'desc' },
-      include: { 
+      include: {
         projects: true,
         execution_logs: {
           orderBy: { created_at: 'desc' },
@@ -36,14 +45,20 @@ export async function getTasks() {
 }
 
 export async function getTaskById(id: string) {
+  const user = await currentUser();
+  if (!user) throw new Error('Unauthorized');
+
   try {
-    // NOTE: The relation to user_stories does not exist on the task model.
-    // To get this information, we'd need to query user_stories separately
-    // if a link between them (e.g., a user_story_id on tasks) is established.
-    return await prisma.tasks.findUnique({
+    const task = await prisma.tasks.findUnique({
       where: { id },
       include: { projects: true, execution_logs: true }
     });
+
+    if (task && task.projects && task.projects.user_id !== user.id) {
+      return null;
+    }
+
+    return task;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch task.');
@@ -51,10 +66,18 @@ export async function getTaskById(id: string) {
 }
 
 export async function getTasksByProjectId(projectId: string) {
+  const user = await currentUser();
+  if (!user) return [];
+
   try {
-    return await prisma.tasks.findMany({ 
-      where: { project_id: projectId }, 
-      orderBy: { created_at: 'desc' } 
+    return await prisma.tasks.findMany({
+      where: {
+        project_id: projectId,
+        projects: {
+          user_id: user.id
+        }
+      },
+      orderBy: { created_at: 'desc' }
     });
   } catch (error) {
     console.error('Database Error:', error);
@@ -63,17 +86,36 @@ export async function getTasksByProjectId(projectId: string) {
 }
 
 export async function getTasksCount() {
-    try {
-        return await prisma.tasks.count();
-    } catch (error) {
-        console.error('Database Error:', error);
-        throw new Error('Failed to fetch tasks count.');
-    }
+  const user = await currentUser();
+  if (!user) return 0;
+
+  try {
+    return await prisma.tasks.count({
+      where: {
+        projects: {
+          user_id: user.id
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Database Error:', error);
+    throw new Error('Failed to fetch tasks count.');
+  }
 }
 
 export async function countTasksByProjectId(projectId: string) {
+  const user = await currentUser();
+  if (!user) return 0;
+
   try {
-    return await prisma.tasks.count({ where: { project_id: projectId } });
+    return await prisma.tasks.count({
+      where: {
+        project_id: projectId,
+        projects: {
+          user_id: user.id
+        }
+      }
+    });
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to count tasks for project.');
@@ -81,8 +123,19 @@ export async function countTasksByProjectId(projectId: string) {
 }
 
 export async function countCompletedTasksByProjectId(projectId: string) {
+  const user = await currentUser();
+  if (!user) return 0;
+
   try {
-    return await prisma.tasks.count({ where: { project_id: projectId, status: 'DONE' } });
+    return await prisma.tasks.count({
+      where: {
+        project_id: projectId,
+        status: 'DONE',
+        projects: {
+          user_id: user.id
+        }
+      }
+    });
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to count completed tasks for project.');
@@ -92,7 +145,14 @@ export async function countCompletedTasksByProjectId(projectId: string) {
 
 // --- WRITE OPERATIONS ---
 export async function createTaskInDb(data: TaskFormData) {
+  const user = await currentUser();
+  if (!user) throw new Error('Unauthorized');
+
   try {
+    // Verify project belongs to user
+    const project = await prisma.projects.findUnique({ where: { id: data.project_id } });
+    if (!project || project.user_id !== user.id) throw new Error('Forbidden');
+
     return await prisma.tasks.create({ data });
   } catch (error) {
     console.error('Database Error:', error);
@@ -101,7 +161,17 @@ export async function createTaskInDb(data: TaskFormData) {
 }
 
 export async function updateTaskInDb(id: string, data: Partial<TaskFormData>) {
+  const user = await currentUser();
+  if (!user) throw new Error('Unauthorized');
+
   try {
+    // Check ownership through project relation
+    const task = await prisma.tasks.findUnique({
+      where: { id },
+      include: { projects: true }
+    });
+    if (!task || (task.projects && task.projects.user_id !== user.id)) throw new Error('Forbidden');
+
     return await prisma.tasks.update({
       where: { id },
       data,
@@ -113,7 +183,17 @@ export async function updateTaskInDb(id: string, data: Partial<TaskFormData>) {
 }
 
 export async function deleteTaskInDb(id: string) {
+  const user = await currentUser();
+  if (!user) throw new Error('Unauthorized');
+
   try {
+    // Check ownership
+    const task = await prisma.tasks.findUnique({
+      where: { id },
+      include: { projects: true }
+    });
+    if (!task || (task.projects && task.projects.user_id !== user.id)) throw new Error('Forbidden');
+
     return await prisma.tasks.delete({
       where: { id },
     });

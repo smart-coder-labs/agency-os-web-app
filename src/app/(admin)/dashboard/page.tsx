@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/Card'
 import { SectionHeader } from '@/shared/components/ui/SectionHeader'
 import { ActivityFeed } from '@/shared/components/ui/ActivityFeed'
-import { Button } from '@/shared/components/ui/Button'
 import { Users, Briefcase, ClipboardList } from 'lucide-react'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { getProjectsCount } from '@/lib/dal/projects.dal'
 import { getUsersCount } from '@/lib/dal/users.dal'
 import { getTasksCount } from '@/lib/dal/tasks.dal'
+import { JsonViewer } from '@/shared/components/ui/JsonViewer'
+import jsonObject from '../../../../object.json'
+
 
 async function getCounts() {
   const [userCount, projectCount, taskCount] = await Promise.all([
@@ -66,6 +68,17 @@ export default async function DashboardPage() {
         <QuickLinks />
         <RecentActivity />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Deep Object Inspector</CardTitle>
+          <CardDescription>Explora la estructura de datos en deep_object.json (Carga asíncrona para archivos de 1GB+)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <JsonViewer srcUrl="/api/large-data" maxHeight={600} initiallyExpanded={false} />
+          <JsonViewer data={jsonObject} maxHeight={600} initiallyExpanded={false} />
+        </CardContent>
+      </Card>
     </div>
   )
 }
