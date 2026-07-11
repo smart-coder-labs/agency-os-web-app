@@ -9,13 +9,13 @@ import Image from 'next/image';
 
 export interface UIArtifact {
   id: string;
-  title?: string;
-  screenshot_url?: string;
-  html_url?: string;
-  device_type?: string;
-  width?: string;
-  height?: string;
-  created_at?: Date | string;
+  title?: string | null;
+  screenshot_url?: string | null;
+  html_url?: string | null;
+  device_type?: string | null;
+  width?: string | null;
+  height?: string | null;
+  created_at?: Date | string | null;
 }
 
 interface UIArtifactCardProps {
@@ -56,7 +56,7 @@ export const UIArtifactCard: React.FC<UIArtifactCardProps> = ({ artifact }) => {
       <CardHeader className="p-4 mb-0 flex-grow">
         <div className="flex justify-between items-start gap-2 mb-2">
           <Badge variant="primary" size="sm" className="flex items-center gap-1">
-            {getDeviceIcon(artifact.device_type)}
+            {getDeviceIcon(artifact.device_type ?? undefined)}
             {artifact.device_type || 'Desktop'}
           </Badge>
           {artifact.width && artifact.height && (

@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/Button'
 import { StoriesTable } from '@/shared/components/StoriesTable'
 import { Plus, BookOpen, MessageSquare, CheckSquare } from 'lucide-react'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
+import { EmptyState } from '@/shared/components/ui/EmptyState'
 
 export default async function StoriesPage() {
   const rows = await getStories()
@@ -70,7 +71,16 @@ export default async function StoriesPage() {
       />
       
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-         <StoriesTable data={formattedStories} />
+        {formattedStories.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No user stories yet"
+            description="User stories define what your product should do. Create them manually or let the PM agent generate them."
+            action={{ label: 'New story', href: '/user-stories/new' }}
+          />
+        ) : (
+          <StoriesTable data={formattedStories} />
+        )}
       </div>
     </div>
   )

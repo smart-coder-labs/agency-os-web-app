@@ -29,48 +29,20 @@ const baseStyles = `
   select-none
 `;
 
-const variantStyles: Record<ButtonVariant, string> = {
-    primary: `
-    bg-accent-blue text-white
-    hover:bg-accent-blue-hover
-    active:bg-accent-blue-active
-    shadow-sm
-  `,
-    secondary: `
-    bg-surface-secondary text-text-primary
-    border border-border-primary
-    hover:bg-surface-primary hover:border-border-primary
-    active:bg-surface-secondary
-    shadow-xs
-  `,
-    ghost: `
-    bg-transparent text-accent-blue
-    hover:bg-accent-blue-tint
-    active:bg-accent-blue-tint
-  `,
-    subtle: `
-    bg-surface-secondary text-text-primary
-    hover:bg-surface-primary
-    active:bg-surface-secondary
-  `,
-    outline: `
-    bg-transparent text-text-primary
-    border border-border-primary
-    hover:bg-surface-secondary hover:border-border-secondary
-    active:bg-surface-tertiary
-  `,
-    destructive: `
-    bg-status-error text-white
-    hover:bg-red-600
-    active:bg-red-700
-    shadow-sm
-  `,
-};
-
 const sizeStyles: Record<ButtonSize, string> = {
     sm: 'h-8 px-3 text-sm rounded-lg',
     md: 'h-10 px-4 text-base rounded-xl',
     lg: 'h-12 px-6 text-lg rounded-xl',
+};
+
+/* Inline styles use CSS variables so they respond to theme changes */
+const variantInlineStyles: Record<ButtonVariant, React.CSSProperties> = {
+    primary: { background: 'var(--color-accent)', color: '#fff', border: 'none' },
+    secondary: { background: 'var(--color-bg-elevated)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' },
+    ghost: { background: 'transparent', color: 'var(--color-text-secondary)', border: 'none' },
+    subtle: { background: 'var(--color-bg-elevated)', color: 'var(--color-text-secondary)', border: 'none' },
+    outline: { background: 'transparent', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' },
+    destructive: { background: 'var(--color-error-muted)', color: 'var(--color-error)', border: '1px solid var(--color-error-muted)' },
 };
 
 /* ========================================
@@ -89,13 +61,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             children,
             className = '',
             disabled,
+            style,
             ...props
         },
         ref
     ) => {
         const combinedClassName = `
       ${baseStyles}
-      ${variantStyles[variant]}
       ${sizeStyles[size]}
       ${fullWidth ? 'w-full' : ''}
       ${className}
@@ -105,6 +77,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             <motion.button
                 ref={ref}
                 className={combinedClassName}
+                style={{ ...variantInlineStyles[variant], ...style }}
                 disabled={disabled || loading}
                 whileHover={{ scale: disabled || loading ? 1 : 1.02 }}
                 whileTap={{ scale: disabled || loading ? 1 : 0.98 }}

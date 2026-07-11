@@ -4,18 +4,19 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Table, Column } from '@/shared/components/ui/Table'
 import { Badge } from '@/shared/components/ui/Badge'
-
-export type Agent = {
-  id: string
-  name: string
-  role: string
-  model: string
-  is_active: boolean
-  status?: string
-  currentTask?: string
+export interface AgentRow {
+  id: string;
+  name: string;
+  role: string;
+  model: string;
+  is_active: boolean | null;
+  status?: string;
+  currentTask?: string;
+  agent_jobs?: { total_tokens?: number | null }[];
+  agent_metrics?: { memory_usage?: number | null }[];
 }
 
-export function AgentsTable({ data }: { data: Agent[] }) {
+export function AgentsTable({ data }: { data: AgentRow[] }) {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
@@ -29,7 +30,7 @@ export function AgentsTable({ data }: { data: Agent[] }) {
     }
   }
 
-  const columns: Column<Agent>[] = [
+  const columns: Column<AgentRow>[] = [
     {
       key: 'name',
       header: 'Agent & Role',

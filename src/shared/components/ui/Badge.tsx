@@ -27,36 +27,14 @@ const baseStyles = `
   transition-apple
 `;
 
-const variantStyles: Record<BadgeVariant, string> = {
-  default: `
-    bg-surface-secondary
-    text-text-primary
-    border border-border-primary
-  `,
-  primary: `
-    bg-accent-blue
-    text-white
-  `,
-  success: `
-    bg-status-success/10
-    text-status-success
-    border border-status-success/20
-  `,
-  warning: `
-    bg-status-warning/10
-    text-status-warning
-    border border-status-warning/20
-  `,
-  error: `
-    bg-status-error/10
-    text-status-error
-    border border-status-error/20
-  `,
-  info: `
-    bg-status-info/10
-    text-status-info
-    border border-status-info/20
-  `,
+/* Inline styles use CSS variables so they respond to theme changes */
+const variantInlineStyles: Record<BadgeVariant, React.CSSProperties> = {
+  default:  { background: 'var(--color-bg-elevated)', color: 'var(--color-text-secondary)', border: '1px solid var(--color-border)' },
+  primary:  { background: 'var(--color-accent-muted)', color: 'var(--color-accent-hover)', border: '1px solid var(--color-accent-muted)' },
+  success:  { background: 'var(--color-success-muted)', color: 'var(--color-success)', border: '1px solid var(--color-success-muted)' },
+  warning:  { background: 'var(--color-warning-muted)', color: 'var(--color-warning)', border: '1px solid var(--color-warning-muted)' },
+  error:    { background: 'var(--color-error-muted)', color: 'var(--color-error)', border: '1px solid var(--color-error-muted)' },
+  info:     { background: 'var(--color-accent-muted)', color: 'var(--color-accent)', border: '1px solid var(--color-accent-muted)' },
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
@@ -77,13 +55,13 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       dot = false,
       children,
       className = '',
+      style,
       ...props
     },
     ref
   ) => {
     const combinedClassName = `
       ${baseStyles}
-      ${variantStyles[variant]}
       ${sizeStyles[size]}
       ${className}
     `.trim().replace(/\s+/g, ' ');
@@ -95,18 +73,19 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
     };
 
     const dotColorMap: Record<BadgeVariant, string> = {
-      default: 'bg-text-primary',
-      primary: 'bg-white',
-      success: 'bg-status-success',
-      warning: 'bg-status-warning',
-      error: 'bg-status-error',
-      info: 'bg-status-info',
+      default: 'var(--color-text-secondary)',
+      primary: 'var(--color-accent-hover)',
+      success: 'var(--color-success)',
+      warning: 'var(--color-warning)',
+      error:   'var(--color-error)',
+      info:    'var(--color-accent)',
     };
 
     return (
       <motion.span
         ref={ref}
         className={combinedClassName}
+        style={{ ...variantInlineStyles[variant], ...style }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{
@@ -117,11 +96,8 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       >
         {dot && (
           <span
-            className={`
-              ${dotSizeMap[size]}
-              ${dotColorMap[variant]}
-              rounded-full
-            `}
+            className={`${dotSizeMap[size]} rounded-full flex-shrink-0`}
+            style={{ background: dotColorMap[variant] }}
           />
         )}
         {children}

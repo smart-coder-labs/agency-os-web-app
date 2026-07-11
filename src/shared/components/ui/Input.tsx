@@ -20,15 +20,15 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
 
 const baseInputStyles = `
   w-full
-  bg-surface-primary
-  border border-border-primary
-  text-text-primary
-  placeholder:text-text-tertiary
+  bg-[#0A1020]
+  border border-[#243447]
+  text-[#F1F5F9]
+  placeholder:text-[#334155]
   transition-apple
   focus:outline-none
-  focus:border-accent-blue
-  focus:ring-2
-  focus:ring-accent-blue/20
+  focus:border-[#6366F1]
+  focus:ring-1
+  focus:ring-[rgba(99,102,241,0.3)]
   disabled:opacity-40
   disabled:cursor-not-allowed
 `;
@@ -78,7 +78,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       ${sizeStyles[inputSize]}
       ${leftIcon ? withIconPadding.left[inputSize] : ''}
       ${rightIcon ? withIconPadding.right[inputSize] : ''}
-      ${hasError ? 'border-status-error focus:border-status-error focus:ring-status-error/20' : ''}
+      ${hasError ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[rgba(239,68,68,0.2)]' : ''}
       ${className}
     `.trim().replace(/\s+/g, ' ');
 
@@ -104,7 +104,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-text-primary mb-2">
+                    <label
+                        className="block text-sm font-medium mb-2"
+                        style={{ color: '#94A3B8', fontFamily: 'DM Sans, sans-serif' }}
+                    >
                         {label}
                     </label>
                 )}
@@ -116,7 +119,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 absolute top-1/2 -translate-y-1/2
                 ${iconPositionMap.left[inputSize]}
                 ${iconSizeMap[inputSize]}
-                text-text-tertiary
+                text-[#334155]
                 pointer-events-none
                 flex items-center justify-center
               `}
@@ -146,7 +149,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 absolute top-1/2 -translate-y-1/2
                 ${iconPositionMap.right[inputSize]}
                 ${iconSizeMap[inputSize]}
-                text-text-tertiary
+                text-[#334155]
                 pointer-events-none
                 flex items-center justify-center
               `}
@@ -163,7 +166,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         transition={{ duration: 0.16 }}
                         className={`
               mt-2 text-sm
-              ${hasError ? 'text-status-error' : 'text-text-secondary'}
+              ${hasError ? 'text-[#FCA5A5]' : 'text-[#475569]'}
             `}
                     >
                         {error || helperText}
@@ -208,14 +211,17 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       rounded-xl
       min-h-[100px]
       resize-${resize}
-      ${hasError ? 'border-status-error focus:border-status-error focus:ring-status-error/20' : ''}
+      ${hasError ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-[rgba(239,68,68,0.2)]' : ''}
       ${className}
     `.trim().replace(/\s+/g, ' ');
 
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-text-primary mb-2">
+                    <label
+                        className="block text-sm font-medium mb-2"
+                        style={{ color: '#94A3B8', fontFamily: 'DM Sans, sans-serif' }}
+                    >
                         {label}
                     </label>
                 )}
@@ -242,7 +248,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                         transition={{ duration: 0.16 }}
                         className={`
               mt-2 text-sm
-              ${hasError ? 'text-status-error' : 'text-text-secondary'}
+              ${hasError ? 'text-[#FCA5A5]' : 'text-[#475569]'}
             `}
                     >
                         {error || helperText}

@@ -3,8 +3,9 @@ import { getTasks } from '@/lib/dal/tasks.dal';
 import { SectionHeader } from '@/shared/components/ui/SectionHeader';
 import { Button } from '@/shared/components/ui/Button';
 import { TasksTable } from '@/shared/components/TasksTable';
-import { Plus, ListChecks, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, ListChecks, AlertCircle, CheckCircle2, ClipboardList } from 'lucide-react';
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay';
+import { EmptyState } from '@/shared/components/ui/EmptyState';
 
 function mapPriority(p: number | null): string {
   if (p === null || p === undefined) return 'LOW';
@@ -79,7 +80,16 @@ export default async function TasksPage() {
       />
       
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-         <TasksTable data={formattedTasks} />
+        {formattedTasks.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title="No tasks yet"
+            description="Tasks are created automatically by the AI agents during the planning phase, or you can add them manually."
+            action={{ label: 'New task', href: '/tasks/new' }}
+          />
+        ) : (
+          <TasksTable data={formattedTasks} />
+        )}
       </div>
     </div>
   )

@@ -97,9 +97,9 @@ export async function updateProjectInDb(id: string, data: ProjectFormData) {
   if (!user) throw new Error('Unauthorized');
 
   try {
-    // Check ownership
+    // Check ownership (null user_id = admin-created, skip check)
     const project = await prisma.projects.findUnique({ where: { id } });
-    if (!project || project.user_id !== user.id) throw new Error('Forbidden');
+    if (!project || (project.user_id && project.user_id !== user.id)) throw new Error('Forbidden');
 
     return await prisma.projects.update({
       where: { id },
@@ -116,9 +116,9 @@ export async function deleteProjectInDb(id: string) {
   if (!user) throw new Error('Unauthorized');
 
   try {
-    // Check ownership
+    // Check ownership (null user_id = admin-created, skip check)
     const project = await prisma.projects.findUnique({ where: { id } });
-    if (!project || project.user_id !== user.id) throw new Error('Forbidden');
+    if (!project || (project.user_id && project.user_id !== user.id)) throw new Error('Forbidden');
 
     return await prisma.projects.delete({
       where: { id },

@@ -1,14 +1,16 @@
 import Link from 'next/link'
-import { Button } from '@/shared/components/ui/Button'
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/components/ui/Card'
 import { Badge } from '@/shared/components/ui/Badge'
+import { CopyButton } from '@/shared/components/ui/CopyButton'
 import { TasksTable } from '@/shared/components/TasksTable'
 import { StoriesTable } from '@/shared/components/StoriesTable'
 import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid'
 import { Markdown } from '@/shared/components/ui/Markdown'
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed'
-import { Edit, FileText, LayoutTemplate, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users } from 'lucide-react'
+import { Edit, FileText, LayoutTemplate, ExternalLink, GitBranch, Github, Activity, BookOpen, Layers, Cpu, FileCode, LayoutDashboard, CheckSquare, Code2, Users, Calendar, Bot } from 'lucide-react'
+import { EmptyState } from '@/shared/components/ui/EmptyState'
 import { AgentsTable } from '@/shared/components/AgentsTable'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { formatCompactNumber } from '@/lib/utils'
@@ -18,7 +20,10 @@ import { getTasksByProjectId, countTasksByProjectId, countCompletedTasksByProjec
 import { getStoriesByProjectId } from '@/lib/dal/user_stories.dal'
 import { getLogsByProjectId } from '@/lib/dal/execution_logs.dal'
 import { getAgentsByProjectId, getCollaborationsByProjectId } from '@/lib/dal/agents.dal'
+import type { FormattedTask, FormattedStory } from '@/shared/types/db'
 import { ProjectDetailPageHeader } from './_components/ProjectDetailPageHeader'
+import { ProjectWorkflowPanel } from './_components/ProjectWorkflowPanel'
+import { Breadcrumb } from '@/shared/components/ui/Breadcrumb'
 
 
 function mapPriority(p: number): string {
@@ -28,24 +33,41 @@ function mapPriority(p: number): string {
   return 'LOW'
 }
 
-function mapLogToActivity(log: any): ActivityItemProps {
-  const actorName = log.agents ? log.agents.name : (log.tools ? `Tool: ${log.tools.name}` : 'System')
+type ExecutionLogWithRelations = Awaited<ReturnType<typeof getLogsByProjectId>>[number];
+
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+
+function cleanTitle(raw: string | null | undefined, fallback: string): string {
+  if (!raw) return fallback
+  // strip leading "AgentRole_UUID" prefix e.g. "Doc_54437a47-..."
+  const stripped = raw.replace(/^[A-Za-z]+_[0-9a-f-]{36}\s*/i, '').trim()
+  // if what's left is still just a UUID, discard it
+  if (UUID_RE.test(stripped) && stripped.length < 40) return fallback
+  return stripped || fallback
+}
+
+function mapLogToActivity(log: ExecutionLogWithRelations): ActivityItemProps {
+  const agentName = log.agents?.name
+  const toolName = log.tools?.name
+  const actorName = agentName ?? (toolName ? toolName : 'System')
   const actorInitials = actorName.slice(0, 2).toUpperCase()
-  
+
   let type: ActivityType = 'default'
   if (log.log_type === 'ERROR') type = 'alert'
-  if (log.log_type === 'SUCCESS') type = 'success'
-  if (log.tools) type = 'commit' // treating tool execution as 'commit' style for now or generic
+  else if (log.log_type === 'SUCCESS') type = 'success'
+  else if (log.tools) type = 'commit'
+
+  const actionLabel = cleanTitle(
+    log.title,
+    toolName ? `executed ${toolName}` : log.log_type?.toLowerCase() ?? 'performed an action'
+  )
 
   return {
-    actor: {
-      name: actorName,
-      initials: actorInitials
-    },
-    action: <span>{log.title || 'performed an action'}</span>,
-    date: new Date(log.created_at).toLocaleString(),
-    type: type,
-    children: <p>{log.detail}</p>
+    actor: { name: actorName, initials: actorInitials },
+    action: <span>{actionLabel}</span>,
+    date: log.created_at ? new Date(log.created_at).toLocaleString() : '',
+    type,
+    children: log.detail ? <p className="text-xs text-gray-500 mt-0.5">{log.detail}</p> : undefined,
   }
 }
 
@@ -65,7 +87,7 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
     countTasksByProjectId(id),
     countCompletedTasksByProjectId(id),
     getCollaborationsByProjectId(id),
-  ]) as any[]
+  ])
 
   if (!project) return <div className="p-8">Project not found</div>
 
@@ -73,34 +95,40 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
   const completedTasks = completedTasksCount || 0
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
+  type AgentResult = Awaited<ReturnType<typeof getAgentsByProjectId>>[number];
+
   // Aggregate Agent Metrics
   const projectAgents = agents || []
-  const totalTokens = projectAgents.reduce((acc: number, agent: any) => 
-    acc + (agent.agent_jobs?.reduce((sum: number, job: any) => sum + (job.total_tokens || 0), 0) || 0), 0
+  const totalTokens = projectAgents.reduce((acc: number, agent: AgentResult) =>
+    acc + (agent.agent_jobs?.reduce((sum: number, job) => sum + (job.total_tokens || 0), 0) || 0), 0
   )
-  const totalJobs = projectAgents.reduce((acc: number, agent: any) => 
+  const totalJobs = projectAgents.reduce((acc: number, agent: AgentResult) =>
     acc + (agent.agent_jobs?.length || 0), 0
   )
-  const avgMemory = projectAgents.length > 0 
-    ? projectAgents.reduce((acc: number, agent: any) => acc + (agent.agent_metrics?.[0]?.memory_usage || 0), 0) / projectAgents.length 
+  const avgMemory = projectAgents.length > 0
+    ? projectAgents.reduce((acc: number, agent: AgentResult) => acc + (agent.agent_metrics?.[0]?.memory_usage || 0), 0) / projectAgents.length
     : 0
 
   // Data mapping for tables
-  const formattedTasks = tasks.map((t: any) => ({
+  const formattedTasks: FormattedTask[] = tasks.map((t) => ({
     ...t,
     project: { id: project.id, name: project.name },
-    priority: mapPriority(t.priority)
+    priority: mapPriority(t.priority ?? 1),
   }))
 
-  const formattedStories = stories.map((s: any) => ({
+  const formattedStories: FormattedStory[] = stories.map((s) => ({
     ...s,
-    project: { id: project.id, name: project.name }
+    project: { id: project.id, name: project.name },
   }))
 
   const activityItems = logs.map(mapLogToActivity)
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      <Breadcrumb items={[
+        { label: 'Projects', href: '/projects' },
+        { label: project.name },
+      ]} />
       {/* Header */}
       <ProjectDetailPageHeader project={project} id={id} />
 
@@ -147,7 +175,8 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full sm:w-auto">
+        <div className="overflow-x-auto pb-px -mb-px">
+        <TabsList className="w-max min-w-full">
           <TabsTrigger value="overview">
              <LayoutDashboard className="w-4 h-4 opacity-70" />
              Overview
@@ -187,47 +216,76 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
              <GitBranch className="w-4 h-4 opacity-70" />
              Agent Flow
           </TabsTrigger>
+          <TabsTrigger value="workflow" className="flex items-center gap-2">
+             <Cpu className="w-4 h-4 opacity-70" />
+             Workflow
+          </TabsTrigger>
         </TabsList>
+        </div>
 
         {/* Overview Content */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {/* Repo Info */}
-             <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <GitBranch className="w-4 h-4 text-blue-500" />
-                    Repository
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {project.repo_path ? (
-                    <div>
-                        <span className="text-xs text-gray-500 uppercase font-semibold">Local Path</span>
-                        <div className="text-sm font-mono bg-gray-50 p-2 rounded border border-gray-100 break-all mt-1">
-                        {project.repo_path}
-                        </div>
-                    </div>
-                  ) : null}
-                  
-                  {project.github_path ? (
-                    <div>
-                        <span className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-1">
-                             <Github className="w-3 h-3" /> GitHub
-                        </span>
-                        <a href={project.github_path} target="_blank" rel="noopener noreferrer" className="text-sm font-mono text-blue-600 hover:underline block mt-1 truncate">
-                            {project.github_path}
-                        </a>
-                    </div>
-                  ) : (
-                    !project.repo_path && <span className="text-sm text-gray-400">No repository linked</span>
-                  )}
-                </CardContent>
-             </Card>
+          {/* Summary stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl border border-border-primary p-4">
+              <p className="text-xs text-text-secondary mb-1">Tasks</p>
+              <p className="text-2xl font-semibold text-text-primary">
+                {completedTasks}<span className="text-base text-text-secondary font-normal">/{totalTasks}</span>
+              </p>
+              <p className="text-xs text-green-600 mt-1">completed</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border-primary p-4">
+              <p className="text-xs text-text-secondary mb-1">Status</p>
+              <div className="mt-1">
+                <Badge variant={project.status === 'ACTIVE' ? 'success' : project.status === 'COMPLETED' ? 'info' : 'default'}>
+                  {project.status ?? 'Unknown'}
+                </Badge>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl border border-border-primary p-4">
+              <p className="text-xs text-text-secondary mb-1">Stories</p>
+              <p className="text-2xl font-semibold text-text-primary">{stories.length}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-border-primary p-4">
+              <p className="text-xs text-text-secondary mb-1">Created</p>
+              <p className="text-sm font-medium text-text-primary">
+                {project.created_at ? new Date(project.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+              </p>
+            </div>
+          </div>
+
+          {/* Repository */}
+          <div className="bg-white rounded-xl border border-border-primary p-5">
+            <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-gray-400" />
+              Repository
+            </h3>
+            {project.repo_path && (
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <span className="text-xs text-text-secondary">Local path</span>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs font-mono text-text-primary bg-gray-50 px-2.5 py-1 rounded-md">{project.repo_path}</code>
+                  <CopyButton text={project.repo_path} />
+                </div>
+              </div>
+            )}
+            {project.github_path && (
+              <div className="flex items-center justify-between py-2">
+                <span className="text-xs text-text-secondary">GitHub</span>
+                <div className="flex items-center gap-2">
+                  <a href={project.github_path} target="_blank" rel="noopener noreferrer"
+                     className="text-xs text-blue-600 hover:underline font-mono">{project.github_path}</a>
+                  <CopyButton text={project.github_path} />
+                </div>
+              </div>
+            )}
+            {!project.repo_path && !project.github_path && (
+              <p className="text-sm text-text-secondary">No repository configured yet.</p>
+            )}
           </div>
 
           {/* Activity Logs */}
-          <div className="space-y-4 mt-10">
+          <div className="space-y-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
                 <Activity className="w-5 h-5 text-gray-500" /> Recent Activity
             </h3>
@@ -264,7 +322,9 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                    <CardDescription>Goals and project strategy</CardDescription>
                 </div>
                 <Link href={`/brief/${project.id}/edit`}>
-                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit Brief</Button>
+                   <Link href={`/brief/${project.id}/edit`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-border-primary rounded-lg hover:bg-gray-50 transition-colors">
+                     <Edit className="w-3 h-3" /> Edit Brief
+                   </Link>
                 </Link>
               </CardHeader>
               <CardContent className="prose prose-slate max-w-none">
@@ -292,22 +352,34 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                    <CardDescription>Technical stack and system design</CardDescription>
                 </div>
                 <Link href={`/architecture/${id}/edit`}>
-                   <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit Architecture</Button>
+                   <Link href={`/architecture/${id}/edit`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-border-primary rounded-lg hover:bg-gray-50 transition-colors">
+                     <Edit className="w-3 h-3" /> Edit Architecture
+                   </Link>
                 </Link>
               </CardHeader>
               <CardContent className="prose prose-slate max-w-none">
-                {project.architecture_specs?.content || (project.architecture_specs?.diagrams as any[])?.length > 0 || Object.keys((project.architecture_specs?.stack_decisions as object) || {}).length > 0 ? (
+                {(() => {
+                  const diagrams = Array.isArray(project.architecture_specs?.diagrams)
+                    ? (project.architecture_specs.diagrams as Array<{ name?: string; code?: string; content?: string }>)
+                    : [];
+                  const stackDecisions = (project.architecture_specs?.stack_decisions != null &&
+                    typeof project.architecture_specs.stack_decisions === 'object' &&
+                    !Array.isArray(project.architecture_specs.stack_decisions))
+                    ? (project.architecture_specs.stack_decisions as Record<string, unknown>)
+                    : {};
+                  const hasContent = project.architecture_specs?.content || diagrams.length > 0 || Object.keys(stackDecisions).length > 0;
+                  return hasContent ? (
                   <div className="space-y-10">
                     {project.architecture_specs?.content && <Markdown>{project.architecture_specs.content}</Markdown>}
-                    
+
                     {/* Diagrams Section */}
-                    {((project.architecture_specs?.diagrams as any[])?.length ?? 0) > 0 && (
+                    {diagrams.length > 0 && (
                         <div className="pt-8 border-t border-gray-100">
                             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 not-prose">
                                 <Cpu className="w-5 h-5 text-blue-500" /> Architecture Diagrams
                             </h3>
                             <div className="space-y-8">
-                                {(project.architecture_specs?.diagrams as any[]).map((diag, i) => (
+                                {diagrams.map((diag, i) => (
                                     <div key={i} className="space-y-4">
                                         {diag.name && <h4 className="font-semibold text-gray-700 not-prose">{diag.name}</h4>}
                                         <div className="bg-gray-50/50 p-6 rounded-xl border border-gray-100 overflow-hidden not-prose">
@@ -320,13 +392,13 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                     )}
 
                     {/* Stack Decisions */}
-                    {Object.keys((project.architecture_specs?.stack_decisions as object) || {}).length > 0 && (
+                    {Object.keys(stackDecisions).length > 0 && (
                         <div className="pt-8 border-t border-gray-100">
                             <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 not-prose">
                                 <Code2 className="w-5 h-5 text-purple-500" /> Tech Stack Decisions
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 not-prose">
-                                {Object.entries((project.architecture_specs?.stack_decisions as object)).map(([key, value]) => (
+                                {Object.entries(stackDecisions).map(([key, value]) => (
                                     <div key={key} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
                                         <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider leading-none block mb-1">{key}</span>
                                         <span className="text-sm font-medium text-gray-900">{String(value)}</span>
@@ -336,9 +408,10 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                         </div>
                     )}
                   </div>
-                ) : (
-                   <div className="text-center py-12 text-gray-400 italic">No architecture specifications defined yet.</div>
-                )}
+                  ) : (
+                    <div className="text-center py-12 text-gray-400 italic">No architecture specifications defined yet.</div>
+                  );
+                })()}
               </CardContent>
            </Card>
         </TabsContent>
@@ -350,8 +423,8 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                     <CardTitle className="text-lg">UI Specifications</CardTitle>
                     <CardDescription>Design system and visual identity</CardDescription>
                  </div>
-                 <Link href={`/ui-specs/${id}/edit`}>
-                    <Button variant="secondary" size="sm" leftIcon={<Edit className="w-3 h-3" />}>Edit UI Specs</Button>
+                 <Link href={`/ui-specs/${id}/edit`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-border-primary rounded-lg hover:bg-gray-50 transition-colors">
+                   <Edit className="w-3 h-3" /> Edit UI Specs
                  </Link>
                </CardHeader>
                <CardContent>
@@ -366,22 +439,38 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                      )}
                      
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {project.ui_specs?.design_system && (
-                           <div>
-                              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Design System Tokens</h4>
-                              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
-                                 {JSON.stringify(project.ui_specs.design_system, null, 2)}
-                              </pre>
-                           </div>
-                        )}
-                        {project.ui_specs?.components && (
-                           <div>
-                              <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Components</h4>
-                              <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
-                                 {JSON.stringify(project.ui_specs.components, null, 2)}
-                              </pre>
-                           </div>
-                        )}
+                        {project.ui_specs?.design_system && (() => {
+                           const dsJson = JSON.stringify(project.ui_specs.design_system, null, 2);
+                           return (
+                             <div>
+                               <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Design System Tokens</h4>
+                               <div className="relative group">
+                                 <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                   {dsJson}
+                                 </pre>
+                                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <CopyButton text={dsJson} className="bg-gray-700 text-gray-300 hover:bg-gray-600" />
+                                 </div>
+                               </div>
+                             </div>
+                           );
+                        })()}
+                        {project.ui_specs?.components && (() => {
+                           const compJson = JSON.stringify(project.ui_specs.components, null, 2);
+                           return (
+                             <div>
+                               <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Components</h4>
+                               <div className="relative group">
+                                 <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg text-xs font-mono overflow-auto max-h-[300px]">
+                                   {compJson}
+                                 </pre>
+                                 <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                   <CopyButton text={compJson} className="bg-gray-700 text-gray-300 hover:bg-gray-600" />
+                                 </div>
+                               </div>
+                             </div>
+                           );
+                        })()}
                      </div>
 
                      {!project.ui_specs && (
@@ -402,15 +491,20 @@ export default async function ProjectDetail({ params }: ProjectDetailPageProps) 
                   <AgentsTable data={agents} />
                </div>
             ) : (
-               <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-12 text-center">
-                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                    <Users className="w-8 h-8" />
-                 </div>
-                 <h3 className="text-lg font-semibold text-gray-900 mb-1">No Agents Found</h3>
-                 <p className="text-gray-500 max-w-xs mx-auto text-sm">No agents have been involved in this project yet. Start a task to assign an agent.</p>
+               <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+                  <EmptyState
+                     icon={Bot}
+                     title="No agents assigned yet"
+                     description="Agents will appear here once you run a workflow for this project."
+                  />
                </div>
             )}
          </TabsContent>
+          {/* Workflow Content */}
+          <TabsContent value="workflow">
+            <ProjectWorkflowPanel projectId={id} projectName={project.name} />
+          </TabsContent>
+
           {/* Flow Content */}
           <TabsContent value="flow">
             <Card>

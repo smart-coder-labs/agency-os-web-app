@@ -149,9 +149,9 @@ export async function createTaskInDb(data: TaskFormData) {
   if (!user) throw new Error('Unauthorized');
 
   try {
-    // Verify project belongs to user
+    // Verify project belongs to user (null user_id = admin-created, skip check)
     const project = await prisma.projects.findUnique({ where: { id: data.project_id } });
-    if (!project || project.user_id !== user.id) throw new Error('Forbidden');
+    if (!project || (project.user_id && project.user_id !== user.id)) throw new Error('Forbidden');
 
     return await prisma.tasks.create({ data });
   } catch (error) {

@@ -85,9 +85,9 @@ export async function createStoryInDb(data: StoryFormData) {
   if (!user) throw new Error('Unauthorized');
 
   try {
-    // Verify project ownership
+    // Verify project ownership (null user_id = admin-created, skip check)
     const project = await prisma.projects.findUnique({ where: { id: data.project_id } });
-    if (!project || project.user_id !== user.id) throw new Error('Forbidden');
+    if (!project || (project.user_id && project.user_id !== user.id)) throw new Error('Forbidden');
 
     return await prisma.user_stories.create({ data });
   } catch (error) {

@@ -3,11 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
-import { 
-  createProjectInDb, 
-  updateProjectInDb, 
-  deleteProjectInDb 
+import {
+  createProjectInDb,
+  updateProjectInDb,
+  deleteProjectInDb,
+  getProjectById,
 } from '@/lib/dal/projects.dal'
+import { currentUser } from '@/lib/auth'
 
 // --- Schemas ---
 const ProjectSchema = z.object({
@@ -42,6 +44,9 @@ export async function createProject(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  const user = await currentUser();
+  if (!user) return { message: 'Not authenticated.' };
+
   const validatedFields = CreateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -66,6 +71,9 @@ export async function updateProject(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
+  const user = await currentUser();
+  if (!user) return { message: 'Not authenticated.' };
+
   const validatedFields = UpdateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -76,6 +84,10 @@ export async function updateProject(
   }
 
   const { id, ...data } = validatedFields.data;
+
+  const project = await getProjectById(id);
+  if (!project) return { message: 'Project not found.' };
+  if (project.user_id && project.user_id !== user.id) return { message: 'Not authorized.' };
 
   try {
     await updateProjectInDb(id, data);
@@ -90,19 +102,37 @@ export async function updateProject(
 
 
 export async function deleteProject(formData: FormData) {
+    const user = await currentUser();
+    if (!user) throw new Error('Not authenticated.');
+
     const id = formData.get('id')?.toString();
     if (!id) {
-        // This should ideally return a state object if used in a useFormState context
         throw new Error('ID es requerido para borrar.');
     }
+
+    const project = await getProjectById(id);
+    if (!project) throw new Error('Project not found.');
+    if (project.user_id && project.user_id !== user.id) throw new Error('Not authorized.');
 
     try {
         await deleteProjectInDb(id);
     } catch (error) {
-        // This should also return a state object
         throw new Error('Error de base de datos: No se pudo borrar el proyecto.');
     }
 
+    revalidatePath('/projects');
+    redirect('/projects');
+}
+
+export async function deleteProjectById(id: string): Promise<void> {
+    const user = await currentUser();
+    if (!user) throw new Error('Not authenticated.');
+
+    const project = await getProjectById(id);
+    if (!project) throw new Error('Project not found.');
+    if (project.user_id && project.user_id !== user.id) throw new Error('Not authorized.');
+
+    await deleteProjectInDb(id);
     revalidatePath('/projects');
     redirect('/projects');
 }

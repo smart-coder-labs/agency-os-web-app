@@ -95,41 +95,49 @@ const sizeClasses: Record<StatisticSize, { label: string; value: string; meta: s
 };
 
 const variantClasses: Record<StatisticVariant, string> = {
-    card: "bg-surface-primary border border-border-primary rounded-2xl shadow-sm",
-    soft: "bg-surface-secondary/70 border border-border-secondary/60 rounded-2xl",
-    bordered: "bg-surface-primary border border-border-tertiary rounded-2xl",
+    card: "rounded-2xl",
+    soft: "rounded-2xl",
+    bordered: "rounded-2xl",
     minimal: "rounded-xl",
-    glass: "bg-white/5 border border-white/10 backdrop-blur-xl rounded-2xl",
+    glass: "backdrop-blur-xl rounded-2xl",
+};
+
+const variantInlineStyles: Record<StatisticVariant, React.CSSProperties> = {
+    card: { background: '#0D1321', border: '1px solid #1E2D45' },
+    soft: { background: '#111827', border: '1px solid #1E2D45' },
+    bordered: { background: '#0D1321', border: '1px solid #243447' },
+    minimal: {},
+    glass: { background: 'rgba(13,19,33,0.7)', border: '1px solid rgba(99,102,241,0.15)' },
 };
 
 const accentTokens: Record<StatisticAccent, { color: string; fillColor: string; text: string; chip: string; }> = {
     blue: {
-        color: '#2563eb',
-        fillColor: 'rgba(37,99,235,0.12)',
+        color: '#6366F1',
+        fillColor: 'rgba(99,102,241,0.12)',
         text: 'text-accent-blue',
         chip: 'bg-accent-blue/10 text-accent-blue',
     },
     green: {
-        color: '#16a34a',
-        fillColor: 'rgba(22,163,74,0.12)',
+        color: '#10B981',
+        fillColor: 'rgba(16,185,129,0.12)',
         text: 'text-status-success',
         chip: 'bg-status-success/10 text-status-success',
     },
     purple: {
-        color: '#7c3aed',
-        fillColor: 'rgba(124,58,237,0.12)',
+        color: '#818CF8',
+        fillColor: 'rgba(129,140,248,0.12)',
         text: 'text-accent-purple',
         chip: 'bg-accent-purple/10 text-accent-purple',
     },
     orange: {
-        color: '#ea580c',
-        fillColor: 'rgba(234,88,12,0.12)',
+        color: '#F59E0B',
+        fillColor: 'rgba(245,158,11,0.12)',
         text: 'text-status-warning',
         chip: 'bg-status-warning/15 text-status-warning',
     },
     pink: {
-        color: '#db2777',
-        fillColor: 'rgba(219,39,119,0.12)',
+        color: '#F472B6',
+        fillColor: 'rgba(244,114,182,0.12)',
         text: 'text-accent-pink',
         chip: 'bg-accent-pink/15 text-accent-pink',
     },
@@ -229,9 +237,20 @@ export const StatisticDisplay = forwardRef<HTMLDivElement, StatisticDisplayProps
                                 'relative overflow-hidden group transition-all duration-300',
                                 variantClasses[variant],
                                 currentSize.padding,
-                                metric.subtle && 'bg-surface-secondary/60',
                                 'flex flex-col'
                             )}
+                            style={{
+                                ...variantInlineStyles[variant],
+                                transition: 'border-color 0.2s, box-shadow 0.2s',
+                            }}
+                            onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+                                e.currentTarget.style.borderColor = '#6366F1'
+                                e.currentTarget.style.boxShadow = '0 0 0 1px rgba(99,102,241,0.15)'
+                            }}
+                            onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+                                e.currentTarget.style.borderColor = variantInlineStyles[variant].border?.toString().split(' ').pop() ?? '#1E2D45'
+                                e.currentTarget.style.boxShadow = 'none'
+                            }}
                             whileHover={{ y: -4, scale: 1.01 }}
                             initial={animate ? { opacity: 0, y: 15 } : false}
                             animate={animate ? { opacity: 1, y: 0 } : undefined}
@@ -243,17 +262,28 @@ export const StatisticDisplay = forwardRef<HTMLDivElement, StatisticDisplayProps
                         >
                             {/* Top row: Label & Icon */}
                             <div className="flex items-center justify-between mb-4">
-                                <span className={cn(
-                                    'uppercase tracking-widest text-text-tertiary font-bold',
-                                    currentSize.label
-                                )}>
+                                <span
+                                    className={cn('uppercase font-medium', currentSize.label)}
+                                    style={{
+                                        fontFamily: 'JetBrains Mono, monospace',
+                                        color: '#475569',
+                                        letterSpacing: '0.08em',
+                                    }}
+                                >
                                     {metric.label}
                                 </span>
                                 {metric.icon && (
-                                    <div className={cn(
-                                        'flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-text-secondary group-hover:text-text-primary transition-colors',
-                                        currentSize.icon
-                                    )}>
+                                    <div
+                                        className={cn(
+                                            'flex items-center justify-center rounded-xl transition-colors',
+                                            currentSize.icon
+                                        )}
+                                        style={{
+                                            background: 'rgba(99,102,241,0.1)',
+                                            border: '1px solid rgba(99,102,241,0.15)',
+                                            color: '#6366F1',
+                                        }}
+                                    >
                                         {metric.icon}
                                     </div>
                                 )}
@@ -261,10 +291,10 @@ export const StatisticDisplay = forwardRef<HTMLDivElement, StatisticDisplayProps
 
                             {/* Main Value Area */}
                             <div className="flex flex-col gap-1 z-10">
-                                <h3 className={cn(
-                                    'font-bold text-text-primary tracking-tight tabular-nums',
-                                    currentSize.value
-                                )}>
+                                <h3
+                                    className={cn('font-bold tracking-tight tabular-nums', currentSize.value)}
+                                    style={{ fontFamily: 'Syne, sans-serif', color: '#F1F5F9', lineHeight: 1 }}
+                                >
                                     {metric.value}
                                 </h3>
                                 

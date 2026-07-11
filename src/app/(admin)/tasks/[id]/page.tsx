@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/components/ui/Tabs';
 import { Markdown } from '@/shared/components/ui/Markdown';
 import { ActivityFeed, ActivityItemProps, ActivityType } from '@/shared/components/ui/ActivityFeed';
-import { ArrowLeft, Edit, Clock, GitCommit, FileJson, Activity, Layers, LayoutDashboard } from 'lucide-react';
+import { Edit, Clock, GitCommit, FileJson, Activity, Layers, LayoutDashboard } from 'lucide-react';
 import { UIArtifactsGrid } from '@/shared/components/artifacts/UIArtifactsGrid';
+import { DeleteTaskButton } from './_components/DeleteTaskButton';
+import { Breadcrumb } from '@/shared/components/ui/Breadcrumb';
 
 
 function mapPriority(p: number | null): string {
@@ -64,9 +66,10 @@ export default async function TaskDetail({ params }: TaskDetailProps) {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
-      <Link href="/tasks" className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors">
-        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Tasks
-      </Link>
+      <Breadcrumb items={[
+        { label: 'Tasks', href: '/tasks' },
+        { label: task.title },
+      ]} />
 
       <SectionHeader 
         title={
@@ -87,11 +90,14 @@ export default async function TaskDetail({ params }: TaskDetailProps) {
           </div>
         }
         actions={
-          <Link href={`/tasks/${id}/edit`}>
-            <Button variant="secondary" leftIcon={<Edit className="w-4 h-4" />}>
-              Edit Task
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/tasks/${id}/edit`}>
+              <Button variant="secondary" leftIcon={<Edit className="w-4 h-4" />}>
+                Edit Task
+              </Button>
+            </Link>
+            <DeleteTaskButton taskId={id} />
+          </div>
         }
       />
 

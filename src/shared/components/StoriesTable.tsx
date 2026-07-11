@@ -4,18 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Table, Column } from '@/shared/components/ui/Table'
 import { Badge } from '@/shared/components/ui/Badge'
-
-type UserStory = {
-  id: string
-  title: string
-  role: string | null
-  priority: string | null
-  status: string | null
-  project?: {
-    name: string
-    id: string
-  }
-}
+import type { FormattedStory } from '@/shared/types/db'
 
 const statusVariantMap: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
   PENDING: 'default',
@@ -32,11 +21,11 @@ const priorityVariantMap: Record<string, "default" | "primary" | "success" | "wa
   URGENT: 'error',
 }
 
-export function StoriesTable({ data }: { data: UserStory[] }) {
+export function StoriesTable({ data }: { data: FormattedStory[] }) {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const columns: Column<UserStory>[] = [
+  const columns: Column<FormattedStory>[] = [
     {
       key: 'title',
       header: 'Title',

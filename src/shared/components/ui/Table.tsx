@@ -92,10 +92,13 @@ export function Table<T>({
         density === "compact" ? "py-2" : "py-3";
 
     return (
-        <div className="overflow-hidden border border-border-primary rounded-xl bg-surface-elevated shadow-lg">
+        <div
+            className="overflow-hidden rounded-xl"
+            style={{ background: '#0D1321', border: '1px solid #1E2D45' }}
+        >
             {/* TABLE */}
             <table className="w-full border-collapse text-left">
-                <thead className="bg-surface-secondary/50 border-b border-border-primary">
+                <thead style={{ background: '#0A1020', borderBottom: '1px solid #1E2D45' }}>
                     <tr>
                         {selectable && (
                             <th className="w-10 px-4">
@@ -110,16 +113,25 @@ export function Table<T>({
                             <th
                                 key={String(col.key)}
                                 className={cn(
-                                    "px-4 py-3 text-sm font-medium text-text-secondary select-none whitespace-nowrap",
+                                    "px-4 py-3 select-none whitespace-nowrap",
                                     col.width && `w-[${col.width}]`
                                 )}
+                                style={{
+                                    fontFamily: 'JetBrains Mono, monospace',
+                                    fontSize: '10px',
+                                    fontWeight: 500,
+                                    color: '#475569',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.08em',
+                                }}
                             >
                                 <button
                                     className={cn(
                                         col.sortable
-                                            ? "flex items-center gap-1 hover:text-text-primary transition-colors"
+                                            ? "flex items-center gap-1 transition-colors"
                                             : ""
                                     )}
+                                    style={col.sortable ? { color: 'inherit' } : undefined}
                                     onClick={() => handleSort(col)}
                                 >
                                     {col.header}
@@ -129,7 +141,7 @@ export function Table<T>({
                                             className={cn(
                                                 "h-3 w-3 transition-opacity",
                                                 sortKey === col.key
-                                                    ? "opacity-100 text-text-primary"
+                                                    ? "opacity-100"
                                                     : "opacity-40"
                                             )}
                                         />
@@ -145,7 +157,8 @@ export function Table<T>({
                         <tr>
                             <td
                                 colSpan={columns.length + (selectable ? 1 : 0)}
-                                className="py-10 text-center text-text-tertiary"
+                                className="py-10 text-center"
+                                style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '12px', color: '#334155' }}
                             >
                                 No results found.
                             </td>
@@ -162,13 +175,15 @@ export function Table<T>({
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.18 }}
                                 className={cn(
-                                    "border-b border-border-primary/50 transition-colors",
-                                    striped && index % 2 === 1
-                                        ? "bg-surface-secondary/40"
-                                        : "",
-                                    hoverable &&
-                                    "hover:bg-surface-secondary/70 cursor-pointer"
+                                    "transition-colors",
+                                    hoverable && "cursor-pointer"
                                 )}
+                                style={{
+                                    borderBottom: '1px solid #1E2D45',
+                                    background: striped && index % 2 === 1 ? 'rgba(17,24,39,0.5)' : 'transparent',
+                                }}
+                                onMouseEnter={hoverable ? (e) => { (e.currentTarget as HTMLElement).style.background = '#111827' } : undefined}
+                                onMouseLeave={hoverable ? (e) => { (e.currentTarget as HTMLElement).style.background = striped && index % 2 === 1 ? 'rgba(17,24,39,0.5)' : 'transparent' } : undefined}
                             >
                                 {selectable && (
                                     <td className="px-4">
@@ -182,10 +197,8 @@ export function Table<T>({
                                 {columns.map((col) => (
                                     <td
                                         key={String(col.key)}
-                                        className={cn(
-                                            "px-4 text-sm text-text-primary",
-                                            rowPadding
-                                        )}
+                                        className={cn("px-4 text-sm", rowPadding)}
+                                        style={{ color: '#F1F5F9' }}
                                     >
                                         {col.render
                                             ? col.render(row[col.key], row)
@@ -199,8 +212,17 @@ export function Table<T>({
             </table>
 
             {/* PAGINATION */}
-            <div className="flex items-center justify-between px-4 py-3 bg-surface-secondary/40 border-t border-border-primary">
-                <p className="text-xs text-text-tertiary">
+            <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{ background: '#0A1020', borderTop: '1px solid #1E2D45' }}
+            >
+                <p
+                    style={{
+                        fontFamily: 'JetBrains Mono, monospace',
+                        fontSize: '11px',
+                        color: '#334155',
+                    }}
+                >
                     Page {page} of {totalPages}
                 </p>
 
@@ -241,10 +263,20 @@ function PaginationButton({
             disabled={disabled}
             onClick={onClick}
             className={cn(
-                "p-2 rounded-lg border border-border-primary text-text-secondary transition-all",
-                "hover:bg-surface-secondary hover:text-text-primary",
+                "p-2 rounded-lg transition-all",
                 "disabled:opacity-40 disabled:cursor-not-allowed"
             )}
+            style={{ border: '1px solid #1E2D45', color: '#475569', background: 'transparent' }}
+            onMouseEnter={e => {
+                if (!disabled) {
+                    (e.currentTarget as HTMLButtonElement).style.background = '#141E2E'
+                    ;(e.currentTarget as HTMLButtonElement).style.color = '#94A3B8'
+                }
+            }}
+            onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                ;(e.currentTarget as HTMLButtonElement).style.color = '#475569'
+            }}
         >
             {children}
         </button>
@@ -279,11 +311,14 @@ function Checkbox({
                 }
             }}
             className={cn(
-                "h-4 w-4 rounded-md border border-border-primary bg-surface-primary flex items-center justify-center",
-                "data-[state=checked]:bg-accent-blue data-[state=checked]:border-accent-blue",
-                "transition-colors",
+                "h-4 w-4 rounded-md flex items-center justify-center transition-colors",
+                "data-[state=checked]:border-[#6366F1]",
                 disabled && "opacity-50 cursor-not-allowed"
             )}
+            style={{
+                border: '1px solid #243447',
+                background: checked ? '#6366F1' : '#0D1321',
+            }}
         >
             {checked && <Check className="h-3 w-3 text-white" />}
         </button>

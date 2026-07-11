@@ -8,7 +8,11 @@ import { Button } from '@/shared/components/ui/Button';
 import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalContent, ModalFooter, ModalCloseButton } from '@/shared/components/ui/Modal';
 import { Input } from '@/shared/components/ui/Input';
 
-export function AIPlanningWorkflow() {
+interface AIPlanningWorkflowProps {
+  projectId?: string;
+}
+
+export function AIPlanningWorkflow({ projectId }: AIPlanningWorkflowProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +70,7 @@ export function AIPlanningWorkflow() {
       const response = await fetch(`${apiUrl}/api/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input, ...(projectId ? { projectId } : {}) }),
       });
 
       if (!response.ok) {

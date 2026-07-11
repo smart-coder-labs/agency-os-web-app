@@ -1,20 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap');
 @import '../../styles/apple-ds.css';
 @import "tailwindcss";
 
 :root {
-  /* Tailwind v4: poné tus variables acá */
-  --color-primary: #2563eb; /* azul default */
-  --color-bg: #f9fafb;      /* gray-50 */
-  --color-text: #111827;    /* gray-900 */
-  --color-border: #e5e7eb;  /* gray-200 */
+  --color-bg-base: #F8FAFC;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-elevated: #F1F5F9;
+  --color-bg-card: #FFFFFF;
+  --color-border-subtle: #E2E8F0;
+  --color-border: #CBD5E1;
+  --color-border-strong: #94A3B8;
+
+  --color-accent: #6366F1;
+  --color-accent-hover: #4F46E5;
+  --color-accent-muted: rgba(99, 102, 241, 0.1);
+
+  --color-success: #059669;
+  --color-success-muted: rgba(5, 150, 105, 0.1);
+  --color-warning: #D97706;
+  --color-warning-muted: rgba(217, 119, 6, 0.1);
+  --color-error: #DC2626;
+  --color-error-muted: rgba(220, 38, 38, 0.1);
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-text-tertiary: #CBD5E1;
+
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Map legacy Apple DS tokens to new palette */
+  --color-primary: var(--color-accent);
+  --color-bg: var(--color-bg-base);
+  --color-text: var(--color-text-primary);
+
+  /* Apple DS token overrides */
+  --color-surface-primary: #FFFFFF;
+  --color-surface-secondary: #F8FAFC;
+  --color-surface-elevated: #F1F5F9;
+  --color-surface-glass: rgba(255, 255, 255, 0.85);
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94A3B8;
+  --color-text-quaternary: #CBD5E1;
+  --color-border-primary: #E2E8F0;
+  --color-border-secondary: #CBD5E1;
+  --color-accent-blue: #6366F1;
+  --color-accent-blue-hover: #4F46E5;
+  --color-accent-blue-active: #4338CA;
+  --color-accent-blue-tint: rgba(99, 102, 241, 0.08);
+
+  /* Sidebar */
+  --color-sidebar: #EFF2F7;
+
+  /* Override apple-ds status tokens */
+  --color-status-success: #059669;
+  --color-status-warning: #D97706;
+  --color-status-error: #DC2626;
+  --color-status-info: #6366F1;
+
+  /* Override apple-ds background tokens */
+  --color-bg-primary: #F8FAFC;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F1F5F9;
+}
+
+.dark {
+  --color-bg-base: #070B13;
+  --color-bg-surface: #0D1321;
+  --color-bg-elevated: #111827;
+  --color-bg-card: #141E2E;
+  --color-border-subtle: #1E2D45;
+  --color-border: #243447;
+  --color-border-strong: #2E4060;
+
+  --color-accent: #6366F1;
+  --color-accent-hover: #818CF8;
+  --color-accent-muted: rgba(99, 102, 241, 0.15);
+
+  --color-success: #10B981;
+  --color-success-muted: rgba(16, 185, 129, 0.12);
+  --color-warning: #F59E0B;
+  --color-warning-muted: rgba(245, 158, 11, 0.12);
+  --color-error: #EF4444;
+  --color-error-muted: rgba(239, 68, 68, 0.12);
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #475569;
+  --color-text-tertiary: #334155;
+
+  /* Apple DS token overrides */
+  --color-surface-primary: #0D1321;
+  --color-surface-secondary: #111827;
+  --color-surface-elevated: #141E2E;
+  --color-surface-glass: rgba(13, 19, 33, 0.85);
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-tertiary: #475569;
+  --color-text-quaternary: #334155;
+  --color-border-primary: #1E2D45;
+  --color-border-secondary: #243447;
+  --color-accent-blue: #6366F1;
+  --color-accent-blue-hover: #818CF8;
+  --color-accent-blue-active: #4F46E5;
+  --color-accent-blue-tint: rgba(99, 102, 241, 0.12);
+
+  /* Sidebar */
+  --color-sidebar: #050810;
+
+  /* Override apple-ds status tokens */
+  --color-status-success: #10B981;
+  --color-status-warning: #F59E0B;
+  --color-status-error: #EF4444;
+  --color-status-info: #6366F1;
+
+  /* Override apple-ds background tokens */
+  --color-bg-primary: #070B13;
+  --color-bg-secondary: #0D1321;
+  --color-bg-tertiary: #111827;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+}
+
+/* Typography scale */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--color-text-primary);
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
+
+/* Prose — for markdown content */
+.prose { color: var(--color-text-secondary); }
+.prose h1, .prose h2, .prose h3, .prose h4 { color: var(--color-text-primary); font-family: var(--font-display); }
+.prose a { color: var(--color-accent-hover); }
+.prose code { background: var(--color-bg-elevated); color: var(--color-accent-hover); padding: 0.15em 0.4em; border-radius: 4px; }
+.prose pre { background: var(--color-bg-base); border: 1px solid var(--color-border); }
+.prose hr { border-color: var(--color-border-subtle); }
+.prose-slate { --tw-prose-body: var(--color-text-secondary); }
+
+/* Animate in */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeSlideUp 0.4s ease forwards; }
+
+/* Pulse ring for agent status */
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70%  { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.pulse-green { animation: pulseRing 2s infinite; }
+
+/* Hide mermaid error overlays that escape the component */
+#mermaid-error-overlay,
+.mermaid-error {
+  display: none !important;
 }
 
 @layer base {
   html, body { height: 100%; }
-}
-
-/* Hide mermaid error overlays that escape the component */
-#mermaid-error-overlay, 
-.mermaid-error {
-  display: none !important;
 }

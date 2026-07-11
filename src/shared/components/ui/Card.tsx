@@ -25,25 +25,12 @@ const baseStyles = `
   transition-apple
 `;
 
-const variantStyles: Record<CardVariant, string> = {
-    elevated: `
-    bg-surface-primary
-    shadow-md
-    hover:shadow-lg
-  `,
-    glass: `
-    glass
-    border border-border-secondary
-    shadow-sm
-  `,
-    outlined: `
-    bg-surface-primary
-    border border-border-primary
-    hover:border-border-primary
-  `,
-    flat: `
-    bg-surface-secondary
-  `,
+/* Inline styles use CSS variables so they respond to theme changes */
+const variantInlineStyles: Record<CardVariant, React.CSSProperties> = {
+    elevated: { background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' },
+    glass: { background: 'var(--color-surface-glass)', border: '1px solid var(--color-accent-muted)', backdropFilter: 'blur(20px)' },
+    outlined: { background: 'var(--color-bg-card)', border: '1px solid var(--color-border)' },
+    flat: { background: 'var(--color-bg-elevated)' },
 };
 
 const paddingStyles = {
@@ -65,13 +52,13 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             padding = 'md',
             children,
             className = '',
+            style,
             ...props
         },
         ref
     ) => {
         const combinedClassName = `
       ${baseStyles}
-      ${variantStyles[variant]}
       ${paddingStyles[padding]}
       ${className}
     `.trim().replace(/\s+/g, ' ');
@@ -92,6 +79,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             <motion.div
                 ref={ref}
                 className={combinedClassName}
+                style={{ ...variantInlineStyles[variant], ...style }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
@@ -117,14 +105,22 @@ export const CardHeader: React.FC<{
     children: React.ReactNode;
     className?: string;
 }> = ({ children, className = '' }) => (
-    <div className={`mb-4 ${className}`}>{children}</div>
+    <div
+        className={`mb-4 pb-4 border-b ${className}`}
+        style={{ borderColor: 'var(--color-border-subtle)' }}
+    >
+        {children}
+    </div>
 );
 
 export const CardTitle: React.FC<{
     children: React.ReactNode;
     className?: string;
 }> = ({ children, className = '' }) => (
-    <h3 className={`text-xl font-semibold text-text-primary mb-1 ${className}`}>
+    <h3
+        className={`text-xl font-semibold mb-1 ${className}`}
+        style={{ fontFamily: 'Syne, sans-serif', color: 'var(--color-text-primary)' }}
+    >
         {children}
     </h3>
 );
@@ -133,7 +129,7 @@ export const CardDescription: React.FC<{
     children: React.ReactNode;
     className?: string;
 }> = ({ children, className = '' }) => (
-    <p className={`text-sm text-text-secondary ${className}`}>{children}</p>
+    <p className={`text-sm ${className}`} style={{ color: 'var(--color-text-muted)' }}>{children}</p>
 );
 
 export const CardContent: React.FC<{

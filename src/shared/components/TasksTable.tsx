@@ -4,18 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Table, Column } from '@/shared/components/ui/Table'
 import { Badge } from '@/shared/components/ui/Badge'
-
-type Task = {
-  id: string
-  title: string
-  type: string
-  status: string
-  priority: string
-  project?: {
-    name: string
-    id: string
-  }
-}
+import type { FormattedTask } from '@/shared/types/db'
 
 const statusVariantMap: Record<string, "default" | "primary" | "success" | "warning" | "error" | "info"> = {
   TODO: 'default',
@@ -32,11 +21,11 @@ const priorityVariantMap: Record<string, "default" | "primary" | "success" | "wa
   URGENT: 'error',
 }
 
-export function TasksTable({ data }: { data: Task[] }) {
+export function TasksTable({ data }: { data: FormattedTask[] }) {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const columns: Column<Task>[] = [
+  const columns: Column<FormattedTask>[] = [
     {
       key: 'title',
       header: 'Title',

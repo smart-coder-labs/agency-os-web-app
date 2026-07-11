@@ -1,8 +1,9 @@
 import { getProjects } from '@/lib/dal/projects.dal'
 import { ProjectsTable } from './_components/ProjectsTable'
-import { Briefcase, Clock, CheckCircle } from 'lucide-react'
+import { Briefcase, Clock, CheckCircle, FolderOpen } from 'lucide-react'
 import { StatisticDisplay } from '@/shared/components/ui/StatisticDisplay'
 import { ProjectsPageHeader } from './_components/ProjectsPageHeader'
+import { EmptyState } from '@/shared/components/ui/EmptyState'
 
 export default async function ProjectsPage() {
   const projects = await getProjects()
@@ -52,7 +53,16 @@ export default async function ProjectsPage() {
       />
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-         <ProjectsTable data={projects as any[]} />
+        {projects.length === 0 ? (
+          <EmptyState
+            icon={FolderOpen}
+            title="No projects yet"
+            description="Start by creating your first project. The AI agents will take it from brief to code."
+            action={{ label: 'Create project', href: '/projects/new' }}
+          />
+        ) : (
+          <ProjectsTable data={projects as any[]} />
+        )}
       </div>
     </div>
   )

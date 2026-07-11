@@ -2,21 +2,40 @@
 
 import { useState } from 'react'
 import { SearchInput } from '@/shared/components/ui/SearchInput'
+import { ThemeToggle } from '@/shared/components/ui/ThemeToggle'
 
 export default function AdminHeader() {
   const [search, setSearch] = useState('')
 
   return (
-    <header className="bg-white/50 backdrop-blur-xl border-b border-[var(--color-border)] sticky top-0 z-10">
-      <div className="px-6 py-3 flex items-center justify-between">
-        <div className="text-sm font-medium text-gray-500">Admin Console</div>
+    <header
+      className="sticky top-0 z-20 flex items-center justify-between px-6 py-3.5"
+      style={{
+        background: 'var(--color-surface-glass)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--color-border-subtle)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '11px',
+          fontFamily: 'JetBrains Mono, monospace',
+          color: 'var(--color-text-tertiary)',
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+        }}
+      >
+        Admin Console
+      </div>
+      <div className="flex items-center gap-3">
         <div className="w-64">
-          <SearchInput 
-            placeholder="Search..." 
-            value={search} 
-            onChange={(val) => setSearch(val)} 
+          <SearchInput
+            placeholder="Search..."
+            value={search}
+            onChange={(val) => setSearch(val)}
           />
         </div>
+        <ThemeToggle />
       </div>
     </header>
   )
